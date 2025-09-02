@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <ThoughtDef>
+    <defName>WaterSpring_Thought</defName>
+    <label>Water Spring</label>
+    <description>This thought is related to the presence of a Water Spring.</description>
+    <stackLimit>1</stackLimit>
+    <thoughtClass>Thought_Situational</thoughtClass>
+    <stages>
+      <li>
+        <label>water spring nearby</label>
+        <description>There is a water spring nearby. It's refreshing.</description>
+        <baseMoodEffect>1</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+</Defs>

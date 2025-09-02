@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <WaterSpring_Thought.label>Water Spring</WaterSpring_Thought.label>
+  <WaterSpring_Thought.description>This thought is related to the presence of a Water Spring.</WaterSpring_Thought.description>
+  <WaterSpring_Thought.stages.0.label>water spring nearby</WaterSpring_Thought.stages.0.label>
+  <WaterSpring_Thought.stages.0.description>There is a water spring nearby. It's refreshing.</WaterSpring_Thought.stages.0.description>
+</LanguageData>

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "BR/K/Fpau8Q=",
+  "success": true,
+  "projectFilePath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\rodri\\.nuget\\packages\\krafs.rimworld.ref\\1.6.4566\\krafs.rimworld.ref.1.6.4566.nupkg.sha512"
+  ],
+  "logs": []
+}

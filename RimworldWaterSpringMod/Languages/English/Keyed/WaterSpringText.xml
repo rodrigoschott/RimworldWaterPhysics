@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <WaterSpringMod.SettingsCategory>Water Spring Mod</WaterSpringMod.SettingsCategory>
+  <WaterSpringMod.SpawnIntervalLabel>Water Spring Spawn Interval: {0} ticks</WaterSpringMod.SpawnIntervalLabel>
+  <WaterSpringMod.DiffusionIntervalLabel>Water Diffusion Check Interval: {0} ticks</WaterSpringMod.DiffusionIntervalLabel>
+  <WaterSpringMod.WaterVolumeTooltip>Water Volume: {0}/{1}</WaterSpringMod.WaterVolumeTooltip>
+</LanguageData>

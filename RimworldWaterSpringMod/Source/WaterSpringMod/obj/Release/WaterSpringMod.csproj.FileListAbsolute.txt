@@ -1,0 +1,5 @@
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Release\WaterSpringMod.csproj.AssemblyReference.cache
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Release\WaterSpringMod.GeneratedMSBuildEditorConfig.editorconfig
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Release\WaterSpringMod.csproj.CoreCompileInputs.cache
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Assemblies\WaterSpringMod.dll
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Release\WaterSpringMod.dll

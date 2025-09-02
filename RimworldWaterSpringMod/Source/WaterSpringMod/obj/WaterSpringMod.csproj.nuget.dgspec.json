@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "restore": {
+    "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {}
+  },
+  "projects": {
+    "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+        "projectName": "WaterSpringMod",
+        "projectPath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+        "packagesPath": "C:\\Users\\rodri\\.nuget\\packages\\",
+        "outputPath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "E:\\Programas\\Microsoft\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\rodri\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "targetAlias": "net472",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net472": {
+          "targetAlias": "net472",
+          "dependencies": {
+            "Krafs.Rimworld.Ref": {
+              "target": "Package",
+              "version": "[1.6.4566, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

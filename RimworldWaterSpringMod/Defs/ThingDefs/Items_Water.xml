@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <ThingDef>
+    <defName>FlowingWater</defName>
+    <label>flowing water</label>
+    <description>Water flowing from a water spring. It will spread to nearby areas over time.</description>
+    <thingClass>WaterSpringMod.WaterSpring.FlowingWater</thingClass>
+    <category>Item</category>
+    <graphicData>
+      <texPath>Things/Item/FlowingWater</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>1.2</drawSize>
+    </graphicData>
+    <altitudeLayer>Floor</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <stackLimit>1</stackLimit>
+    <drawerType>RealtimeOnly</drawerType>
+    <statBases>
+      <MaxHitPoints>9999</MaxHitPoints>
+      <Mass>0.1</Mass>
+      <Flammability>0</Flammability>
+      <Beauty>2</Beauty>
+      <DeteriorationRate>0</DeteriorationRate>
+    </statBases>
+    <tickerType>Normal</tickerType>
+    <tradeability>None</tradeability>
+    <alwaysHaulable>false</alwaysHaulable>
+    <pathCost>40</pathCost>
+    <passability>PassThroughOnly</passability>
+    <drawOffscreen>true</drawOffscreen>
+    <fillPercent>0</fillPercent>
+    <thingCategories>
+      <li>Items</li>
+    </thingCategories>
+    <canBeUsedUnderRoof>true</canBeUsedUnderRoof>
+    <neverMultiSelect>true</neverMultiSelect>
+    <blockLight>false</blockLight>
+    <saveCompressible>false</saveCompressible>
+    <uiIconScale>1.3</uiIconScale>
+    <uiIconColor>(0.45,0.6,0.9)</uiIconColor>
+  </ThingDef>
+</Defs>

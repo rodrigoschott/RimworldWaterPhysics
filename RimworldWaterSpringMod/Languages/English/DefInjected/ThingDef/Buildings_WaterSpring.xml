@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <WaterSpring.label>water spring</WaterSpring.label>
+  <WaterSpring.description>A natural source of water that generates flowing water over time. The water will spread to nearby areas according to basic diffusion rules.</WaterSpring.description>
+  
+  <FlowingWater.label>flowing water</FlowingWater.label>
+  <FlowingWater.description>Water flowing from a water spring. It will spread to nearby areas over time, following the path of least resistance.</FlowingWater.description>
+</LanguageData>
