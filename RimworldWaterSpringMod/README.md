@@ -11,6 +11,7 @@ Natural water flow in RimWorld with a performant, moddable diffusion system, a b
 - Uses an active-tile diffusion system with stability rules and safeguards against oscillation.
 - Low overhead with pooling, frequency gating, and optional chunk-based batching.
 - In-game debug overlay (Alt+W): shows active tiles, chunk bounds (optional), and per-cell volumes.
+- Optional roof-aware evaporation on stable, low-volume tiles.
 
 ---
 
@@ -45,6 +46,7 @@ Open Settings > Mod Settings > Water Physics. Highlights:
 - Chunk-based batching (optional) and checkerboard stepping.
 - Frequency gate and adaptive TPS throttle (optional).
 - Debug & visualization toggles.
+- Evaporation (optional, per-tile): enable/disable, check interval, max-volume threshold, chance for unroofed, roof toggle, and separate chance for roofed when allowed.
 
 ---
 
@@ -91,6 +93,7 @@ dotnet build .\RimworldWaterSpringMod\Source\WaterSpringMod\WaterSpringMod.sln -
 	- Spreads to neighbors when volume allows; respects min-diff transfer rule.
 	- Prevents equal-volume oscillation; optional anti-backflow cooldown.
 	- Inspector string is clean (no empty lines).
+	- Evaporation: when enabled, stable tiles at or below a threshold volume periodically roll to evaporate 1 unit; roofed behavior is configurable. When a tile dries (volume hits 0), original terrain is restored.
 
 - Building_WaterSpring (Thing):
 	- Periodically spawns or increments FlowingWater on its own tile.
@@ -120,6 +123,13 @@ Notes
 	1) Expand into empty cells if volume >= 2 (create new FlowingWater).
 	2) Otherwise transfer to the lowest-volume neighbor meeting the min-diff rule.
 - Anti-backflow (optional): after an outbound transfer, immediate backflow to the sender requires an extra difference for a short cooldown.
+
+### Evaporation (roof-aware)
+- Scheduling: each water tile has its own timer and checks every N ticks (default 300) with a randomized phase; no global scans.
+- Conditions: only tiles that are stable can evaporate; volume must be ≤ threshold (default 1).
+- Roof rules: if "Only unroofed" is ON (default), roofed tiles never evaporate; if OFF, roofed tiles use a separate chance.
+- Chances: unroofed chance (default 10%), roofed chance (default 10%) when allowed.
+- Effects: successful evaporation reduces volume by 1 and reactivates the tile if it remains; when volume reaches 0, the original terrain is unconditionally restored and the water thing is destroyed (no reactivation).
 
 ### Stability and performance
 - Stability: a tile is marked stable only after `stabilityCounter >= stabilityCap` with repeated no-change attempts.
@@ -167,6 +177,14 @@ Update Frequency (optional)
 
 Debug & Visualization
 - `showPerformanceStats`, `showDetailedDebug` (e.g., stable tiles in blue).
+
+Evaporation
+- `evaporationEnabled`: master toggle.
+- `evaporationIntervalTicks`: per-tile check interval (default 300).
+- `evaporationMaxVolumeThreshold`: max volume to allow evaporation (default 1).
+- `evaporationChancePercent`: chance for unroofed tiles (0–100; default 10).
+- `evaporationOnlyUnroofed`: if true (default), roofed tiles never evaporate.
+- `evaporationChancePercentRoofed`: chance for roofed tiles when allowed (0–100; default 10).
 
 All settings are range-clamped on load to safe bounds.
 
