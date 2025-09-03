@@ -66,22 +66,30 @@ namespace WaterSpringMod.WaterSpring
         
         public void IncrementStabilityCounter()
         {
+            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+            bool debug = settings.debugModeEnabled;
             if (stabilityCounter < MaxStability)
             {
                 stabilityCounter++;
-                WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} stability now {stabilityCounter}");
+                if (debug)
+                {
+                    WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} stability now {stabilityCounter}");
+                }
                 
                 // Determine configured cap and clamp
-                int cap = Mathf.Clamp(LoadedModManager.GetMod<WaterSpringModMain>().settings.stabilityCap, 1, MaxStability);
+                int cap = Mathf.Clamp(settings.stabilityCap, 1, MaxStability);
                 stabilityCounter = Math.Min(stabilityCounter, cap);
 
                 // Auto-mark as stable when reaching configured cap
-                var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+                var s = settings;
                 bool neverStableSpring = isSpringSourceTile && s.springNeverStabilize;
                 if (!neverStableSpring && stabilityCounter >= cap)
                 {
                     MarkAsStable();
-                    WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} reached stability cap ({cap}) and is now fully deactivated");
+                    if (debug)
+                    {
+                        WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} reached stability cap ({cap}) and is now fully deactivated");
+                    }
                 }
             }
         }
@@ -90,7 +98,11 @@ namespace WaterSpringMod.WaterSpring
         {
             stabilityCounter = 0;
             // Do NOT clear explicit deregistration here; Reactivate() is responsible for that.
-            WaterSpringLogger.LogDebug($"FlowingWater.ResetStabilityCounter: Water at {Position} stability reset to 0");
+            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+            if (settings.debugModeEnabled)
+            {
+                WaterSpringLogger.LogDebug($"FlowingWater.ResetStabilityCounter: Water at {Position} stability reset to 0");
+            }
         }
         
         // Helper method to check if the water is considered stable
@@ -132,7 +144,11 @@ namespace WaterSpringMod.WaterSpring
             if (!isExplicitlyDeregistered)
             {
                 isExplicitlyDeregistered = true;
-                WaterSpringLogger.LogDebug($"FlowingWater.MarkAsStable: Water at {Position} marked as stable and will not auto-register");
+                var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+                if (settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"FlowingWater.MarkAsStable: Water at {Position} marked as stable and will not auto-register");
+                }
                 
                 // Unregister from the active tile system
                 GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
@@ -151,7 +167,11 @@ namespace WaterSpringMod.WaterSpring
             ResetStabilityCounter();
             // Ensure immediate processing next tick
             ticksUntilNextCheck = 0;
-            WaterSpringLogger.LogDebug($"FlowingWater.Reactivate: Water at {Position} reactivated");
+            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+            if (settings.debugModeEnabled)
+            {
+                WaterSpringLogger.LogDebug($"FlowingWater.Reactivate: Water at {Position} reactivated");
+            }
             
             // Register with the active tile system
             GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
@@ -308,8 +328,12 @@ namespace WaterSpringMod.WaterSpring
     public bool AttemptLocalDiffusion()
         {
             if (Volume <= 1 || Map == null || !Spawned) return false;
-            
-            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Starting diffusion check for water at {Position} with volume {Volume}");
+            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+            bool debug = settings.debugModeEnabled;
+            if (debug)
+            {
+                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Starting diffusion check for water at {Position} with volume {Volume}");
+            }
             
             // Only attempt to spread if we have enough volume
             if (Volume > 1)
@@ -318,10 +342,12 @@ namespace WaterSpringMod.WaterSpring
                 IntVec3 pos = Position;
                 IntVec3[] validCells = new IntVec3[4]; // Store valid cells
                 FlowingWater[] existingWaters = new FlowingWater[4]; // Store existing water objects
-                int[] volumes = new int[4]; // Store volumes (or -1 for empty cells)
                 int validCount = 0;
                 
-                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Scanning adjacent cells for water at {Position}");
+                if (debug)
+                {
+                    WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Scanning adjacent cells for water at {Position}");
+                }
                 
                 // First pass: Find all valid cells and their contents
                 foreach (IntVec3 neighbor in GenAdj.CardinalDirections)
@@ -331,44 +357,36 @@ namespace WaterSpringMod.WaterSpring
                     // Skip if not valid or not walkable
                     if (!adjacentCell.InBounds(Map) || !adjacentCell.Walkable(Map))
                     {
-                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} is not valid (not in bounds or not walkable)");
+                        if (debug)
+                        {
+                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} is not valid (not in bounds or not walkable)");
+                        }
                         continue;
                     }
                     
                     // Check for solid buildings
-                    bool hasBuilding = false;
-                    foreach (Thing thing in adjacentCell.GetThingList(Map))
+                    Building ed = adjacentCell.GetEdifice(Map);
+                    if (ed != null && ed.def != null && ed.def.fillPercent > 0.1f)
                     {
-                        if (thing.def.fillPercent > 0.1f && thing.def.category == ThingCategory.Building)
+                        if (debug)
                         {
-                            hasBuilding = true;
-                            break;
+                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} has a solid building, skipping");
                         }
-                    }
-                    if (hasBuilding)
-                    {
-                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} has a solid building, skipping");
                         continue;
                     }
                     
                     // Look for existing water in this cell
-                    FlowingWater existingWater = null;
-                    foreach (Thing thing in adjacentCell.GetThingList(Map))
-                    {
-                        if (thing is FlowingWater water)
-                        {
-                            existingWater = water;
-                            break;
-                        }
-                    }
+                    FlowingWater existingWater = Map.thingGrid.ThingAt<FlowingWater>(adjacentCell);
                     
                     // Store valid cell info
                     validCells[validCount] = adjacentCell;
                     existingWaters[validCount] = existingWater;
-                    volumes[validCount] = existingWater != null ? existingWater.Volume : -1;
                     
-                    WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Found valid cell {adjacentCell} with " + 
-                                             (existingWater != null ? $"existing water volume {existingWater.Volume}" : "no water"));
+                    if (debug)
+                    {
+                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Found valid cell {adjacentCell} with " + 
+                                                 (existingWater != null ? $"existing water volume {existingWater.Volume}" : "no water"));
+                    }
                     
                     validCount++;
                 }
@@ -376,7 +394,10 @@ namespace WaterSpringMod.WaterSpring
                 // If we found valid cells, choose the best one to transfer water to
                 if (validCount > 0)
                 {
-                    WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Found {validCount} valid adjacent cells");
+                    if (debug)
+                    {
+                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Found {validCount} valid adjacent cells");
+                    }
                     
                     // Anti-backflow: decay cooldown over time
                     if (backflowCooldownRemaining > 0) backflowCooldownRemaining--;
@@ -387,29 +408,33 @@ namespace WaterSpringMod.WaterSpring
                     // Allow expansion when there's at least 2 units to split
                     if (Volume >= 2)
                     {
-                        // Find all empty cells and randomly select one
-                        var emptyCellIndices = new System.Collections.Generic.List<int>();
-                        
+                        // Reservoir-sample an empty cell (uniform without allocations)
+                        int emptyIndex = -1;
+                        int emptySeen = 0;
                         for (int i = 0; i < validCount; i++)
                         {
                             if (existingWaters[i] == null)
                             {
-                                emptyCellIndices.Add(i);
+                                emptySeen++;
+                                // pick with 1/emptySeen probability
+                                if (Rand.Range(0, emptySeen) == 0)
+                                {
+                                    emptyIndex = i;
+                                }
                             }
                         }
-                        
-                        // Randomly select one of the empty cells if any were found
-                        int emptyIndex = -1;
-                        if (emptyCellIndices.Count > 0)
+                        if (debug && emptySeen > 0 && emptyIndex >= 0)
                         {
-                            emptyIndex = emptyCellIndices[Rand.Range(0, emptyCellIndices.Count)];
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Randomly selected empty cell {validCells[emptyIndex]} from {emptyCellIndices.Count} empty cells");
+                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Selected empty cell {validCells[emptyIndex]} from {emptySeen} empty cells");
                         }
                         
                         // If we found an empty cell, create new water
                         if (emptyIndex >= 0)
                         {
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Creating new water at empty cell {validCells[emptyIndex]}");
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Creating new water at empty cell {validCells[emptyIndex]}");
+                            }
                             ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
                             if (waterDef != null)
                             {
@@ -432,7 +457,6 @@ namespace WaterSpringMod.WaterSpring
                     }
                     
                     // Second priority: Transfer to existing water with lowest volume (respect min volume difference)
-                    var lowestVolumeIndices = new System.Collections.Generic.List<int>();
                     int lowestVolume = int.MaxValue;
                     
                     // First pass: Find the lowest volume
@@ -443,57 +467,53 @@ namespace WaterSpringMod.WaterSpring
                             if (existingWaters[i].Volume < lowestVolume)
                             {
                                 lowestVolume = existingWaters[i].Volume;
-                                lowestVolumeIndices.Clear();
-                                lowestVolumeIndices.Add(i);
-                            }
-                            else if (existingWaters[i].Volume == lowestVolume)
-                            {
-                                lowestVolumeIndices.Add(i);
                             }
                         }
                     }
                     
                     // If we found water to transfer to, randomly select one of the lowest volume cells
-                    if (lowestVolumeIndices.Count > 0)
+                    if (lowestVolume != int.MaxValue)
                     {
                         // Enforce minimum volume difference to avoid equal-volume oscillation
-                        var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-                        int minDiff = s.minVolumeDifferenceForTransfer;
-                        // Filter candidates by required difference
-                        var eligible = new System.Collections.Generic.List<int>();
-                        for (int k = 0; k < lowestVolumeIndices.Count; k++)
+                        int minDiff = settings.minVolumeDifferenceForTransfer;
+                        int chosen = -1;
+                        int eligSeen = 0;
+                        for (int i = 0; i < validCount; i++)
                         {
-                            int idx = lowestVolumeIndices[k];
-                            int neighborVol = existingWaters[idx].Volume;
+                            var nw = existingWaters[i];
+                            if (nw == null) continue;
+                            if (nw.Volume != lowestVolume) continue;
+                            int neighborVol = nw.Volume;
                             int required = minDiff;
-                            // Anti-backflow bonus: if attempting to flow back into the last inbound direction during cooldown,
-                            // require a greater difference
-                            if (s.antiBackflowEnabled && backflowCooldownRemaining > 0)
+                            if (settings.antiBackflowEnabled && backflowCooldownRemaining > 0 && validCells[i] == lastInboundFrom)
                             {
-                                if (validCells[idx] == lastInboundFrom)
-                                {
-                                    required += Mathf.Max(0, s.backflowMinDiffBonus);
-                                }
+                                required += Mathf.Max(0, settings.backflowMinDiffBonus);
                             }
                             if ((this.Volume - neighborVol) >= required)
                             {
-                                eligible.Add(idx);
+                                eligSeen++;
+                                if (Rand.Range(0, eligSeen) == 0)
+                                {
+                                    chosen = i;
+                                }
                             }
                         }
-                        if (eligible.Count > 0)
+                        if (chosen >= 0)
                         {
-                            int chosen = eligible[Rand.Range(0, eligible.Count)];
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Transferring to existing water at {validCells[chosen]} with volume {existingWaters[chosen].Volume} (minDiff {minDiff})");
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Transferring to existing water at {validCells[chosen]} with volume {existingWaters[chosen].Volume} (minDiff {minDiff})");
+                            }
                             bool transferred = TransferVolume(existingWaters[chosen]);
-                            if (transferred && s.antiBackflowEnabled)
+                            if (transferred && settings.antiBackflowEnabled)
                             {
                                 // Update inbound/outbound markers to discourage immediate backflow
                                 existingWaters[chosen].lastInboundFrom = this.Position;
-                                existingWaters[chosen].backflowCooldownRemaining = Mathf.Max(existingWaters[chosen].backflowCooldownRemaining, s.backflowCooldownTicks);
+                                existingWaters[chosen].backflowCooldownRemaining = Mathf.Max(existingWaters[chosen].backflowCooldownRemaining, settings.backflowCooldownTicks);
                             }
                             return transferred; // Return whether diffusion actually occurred
                         }
-                        else
+                        else if (debug)
                         {
                             WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No eligible neighbor meets min volume difference {minDiff}; no transfer");
                         }
@@ -501,11 +521,17 @@ namespace WaterSpringMod.WaterSpring
                     
                     // If no empty cells and all adjacent water cells are at max volume,
                     // we simply wait and do nothing
-                    WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No available cells to transfer to - all adjacent water is at max volume");
+                    if (debug)
+                    {
+                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No available cells to transfer to - all adjacent water is at max volume");
+                    }
                 }
                 else
                 {
-                    WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No valid adjacent cells found for water at {Position}");
+                    if (debug)
+                    {
+                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No valid adjacent cells found for water at {Position}");
+                    }
                 }
             }
             
@@ -540,6 +566,7 @@ namespace WaterSpringMod.WaterSpring
                 // Enforce minimum difference for transfers to existing water to prevent ping-pong
                 var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
                 int minDiff = Mathf.Max(0, s.minVolumeDifferenceForTransfer);
+                bool debug = s.debugModeEnabled;
                 bool neighborIsNewlySpawned = neighbor.Volume == 0; // allow expansion
                 if (!neighborIsNewlySpawned)
                 {
@@ -551,12 +578,18 @@ namespace WaterSpringMod.WaterSpring
                 int transferAmount = Math.Min(1, Math.Min(this.Volume, MaxVolume - neighbor.Volume));
                 if (transferAmount <= 0) return false;
                 
-                WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: Transferring {transferAmount} volume from {Position} (vol:{Volume}) to {neighbor.Position} (vol:{neighbor.Volume})");
+                if (debug)
+                {
+                    WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: Transferring {transferAmount} volume from {Position} (vol:{Volume}) to {neighbor.Position} (vol:{neighbor.Volume})");
+                }
                 
                 neighbor.AddVolume(transferAmount);
                 Volume -= transferAmount; // Use the property setter
                 
-                WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: After transfer - Source: {Volume}, Target: {neighbor.Volume}");
+                if (debug)
+                {
+                    WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: After transfer - Source: {Volume}, Target: {neighbor.Volume}");
+                }
                 
                 // Make sure to register both tiles as active in the system
                 if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
@@ -582,40 +615,47 @@ namespace WaterSpringMod.WaterSpring
         public override string GetInspectString()
         {
             string baseString = base.GetInspectString();
-            string waterInfo = $"\nWater volume: {Volume}/{MaxVolume}";
-            
-            // Only show stability info if active tile system is enabled
-            if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
+            // Build without leading newlines to satisfy RimWorld's inspector (no empty lines allowed)
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(128);
+            if (!string.IsNullOrEmpty(baseString))
             {
-                WaterSpringModSettings settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-                int cap = Mathf.Clamp(LoadedModManager.GetMod<WaterSpringModMain>().settings.stabilityCap, 1, MaxStability);
-                string stabilityInfo = $"\nStability: {stabilityCounter}/{cap}";
+                sb.Append(baseString.Trim());
+            }
+
+            // Water volume (always shown)
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append("Water volume: ").Append(Volume).Append('/').Append(MaxVolume);
+
+            // Stability info when active tile system is enabled
+            var mod = LoadedModManager.GetMod<WaterSpringModMain>();
+            var settings = mod?.settings;
+            if (settings != null && settings.useActiveTileSystem)
+            {
+                int cap = Mathf.Clamp(settings.stabilityCap, 1, MaxStability);
+                sb.Append('\n').Append("Stability: ").Append(stabilityCounter).Append('/').Append(cap);
                 if (isSpringSourceTile && settings.springNeverStabilize)
                 {
-                    stabilityInfo += " (spring source)";
+                    sb.Append(" (spring source)");
                 }
-                
                 if (stabilityCounter >= MaxStability)
                 {
-                    stabilityInfo += " (Fully Stable)";
+                    sb.Append(" (Fully Stable)");
                 }
                 else if (isExplicitlyDeregistered)
                 {
-                    stabilityInfo += " (Stable)";
+                    sb.Append(" (Stable)");
                 }
-                // Tiered frequency removed
-                
-                // Add volume change history for debugging
-                string changeInfo = $"\nPrevious vol: {previousVolume}, Changes: {volumeChangeCounter}";
+
+                // Volume change history for debugging
+                sb.Append('\n').Append("Previous vol: ").Append(previousVolume)
+                  .Append(", Changes: ").Append(volumeChangeCounter);
                 if (volumeChangeCounter > 0)
                 {
-                    changeInfo += $", Time since last: {ticksSinceLastChange} ticks";
+                    sb.Append(", Time since last: ").Append(ticksSinceLastChange).Append(" ticks");
                 }
-                
-                return baseString + waterInfo + stabilityInfo + changeInfo;
             }
-            
-            return baseString + waterInfo;
+
+            return sb.ToString();
         }
 
         // Mark this tile as a spring source tile (affects stability behavior/priority)

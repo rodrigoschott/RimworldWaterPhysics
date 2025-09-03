@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using Verse;
 using UnityEngine;
@@ -17,8 +16,11 @@ namespace WaterSpringMod.WaterSpring
         {
             base.SpawnSetup(map, respawningAfterLoad);
             
-            WaterSpringLogger.LogDebug($"Building_WaterSpring.SpawnSetup: Spring at {Position} being setup. Respawning: {respawningAfterLoad}");
-            WaterSpringLogger.LogDebug($"Building_WaterSpring.SpawnSetup: ThingID: {this.ThingID}, Def: {this.def.defName}, TickerType: {this.def.tickerType}");
+            if (WaterSpringLogger.DebugEnabled)
+            {
+                WaterSpringLogger.LogDebug("Building_WaterSpring.SpawnSetup: Spring at " + Position + " being setup. Respawning: " + respawningAfterLoad);
+                WaterSpringLogger.LogDebug("Building_WaterSpring.SpawnSetup: ThingID: " + this.ThingID + ", Def: " + this.def.defName + ", TickerType: " + this.def.tickerType);
+            }
             
             if (this.def.tickerType == TickerType.Never)
             {
@@ -26,20 +28,23 @@ namespace WaterSpringMod.WaterSpring
             }
             
             // Register for ticking if needed
-            if (Find.TickManager != null)
+            if (Find.TickManager != null && WaterSpringLogger.DebugEnabled)
             {
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.SpawnSetup: TickManager exists, making sure we're registered");
+                WaterSpringLogger.LogDebug("Building_WaterSpring.SpawnSetup: TickManager exists, making sure we're registered");
             }
             
             if (Spawned)
             {
                 // Force a short initial water spawn time
                 ticksUntilNextWaterSpawn = 60;
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.SpawnSetup: Spring is spawned, set initial spawn timer to {ticksUntilNextWaterSpawn} ticks");
+                if (WaterSpringLogger.DebugEnabled)
+                {
+                    WaterSpringLogger.LogDebug("Building_WaterSpring.SpawnSetup: Spring is spawned, set initial spawn timer to " + ticksUntilNextWaterSpawn + " ticks");
+                }
             }
             
             // Try to spawn water immediately for testing
-            WaterSpringLogger.LogDebug($"Building_WaterSpring.SpawnSetup: Attempting initial water spawn for testing...");
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("Building_WaterSpring.SpawnSetup: Attempting initial water spawn for testing...");
             SpawnFlowingWater();
         }
         
@@ -52,18 +57,18 @@ namespace WaterSpringMod.WaterSpring
             base.Tick();
             
             // Add an immediate log for the first tick to verify the method is being called
-            if (!firstTickLogged)
+            if (!firstTickLogged && WaterSpringLogger.DebugEnabled)
             {
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: FIRST TICK DETECTED for spring at {Position}");
+                WaterSpringLogger.LogDebug("Building_WaterSpring.Tick: FIRST TICK DETECTED for spring at " + Position);
                 firstTickLogged = true;
             }
             
             // Count total ticks for diagnostic purposes
             tickCounter++;
             
-            if (tickCounter % 250 == 0)
+            if (WaterSpringLogger.DebugEnabled && (tickCounter % 600 == 0))
             {
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: Spring at {Position} has been ticked {tickCounter} times");
+                WaterSpringLogger.LogDebug("Building_WaterSpring.Tick: Spring at " + Position + " has been ticked " + tickCounter + " times");
             }
             
             if (!Spawned)
@@ -75,21 +80,27 @@ namespace WaterSpringMod.WaterSpring
             ticksUntilNextWaterSpawn--;
             
             // Log more frequently to catch the issue
-            if (ticksUntilNextWaterSpawn % 10 == 0 || ticksUntilNextWaterSpawn < 5)
+            if (WaterSpringLogger.DebugEnabled && (ticksUntilNextWaterSpawn % 60 == 0 || ticksUntilNextWaterSpawn < 5))
             {
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: Spring at {Position} has {ticksUntilNextWaterSpawn} ticks until next spawn");
+                WaterSpringLogger.LogDebug("Building_WaterSpring.Tick: Spring at " + Position + " has " + ticksUntilNextWaterSpawn + " ticks until next spawn");
             }
             
             if (ticksUntilNextWaterSpawn <= 0)
             {
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: Spring at {Position} triggering water spawn!");
+                if (WaterSpringLogger.DebugEnabled)
+                {
+                    WaterSpringLogger.LogDebug("Building_WaterSpring.Tick: Spring at " + Position + " triggering water spawn!");
+                }
                 SpawnFlowingWater();
                 
                 // Get settings from the mod
                 WaterSpringModSettings settings = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
                 int newInterval = settings != null ? settings.waterSpringSpawnInterval : 200;
                 ticksUntilNextWaterSpawn = newInterval;
-                WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: Next spawn scheduled in {newInterval} ticks");
+                if (WaterSpringLogger.DebugEnabled)
+                {
+                    WaterSpringLogger.LogDebug("Building_WaterSpring.Tick: Next spawn scheduled in " + newInterval + " ticks");
+                }
             }
 
             // Try to inject backlog periodically
@@ -107,7 +118,7 @@ namespace WaterSpringMod.WaterSpring
 
         private void SpawnFlowingWater()
         {
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Starting water spawn process at {Position}");
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Starting water spawn process at " + Position);
             
             if (Map == null)
             {
@@ -116,7 +127,7 @@ namespace WaterSpringMod.WaterSpring
             }
             
             IntVec3 position = this.Position;
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Target position: {position}");
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Target position: " + position);
             
             // Check if position is valid
             if (!position.IsValid)
@@ -131,29 +142,21 @@ namespace WaterSpringMod.WaterSpring
                 return;
             }
             
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Position validation passed");
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Position validation passed");
             
             // Check for existing water
             bool waterExists = false;
             FlowingWater existingWater = null;
             
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Checking for existing water at {position}");
-            List<Thing> thingsAtPosition = new List<Thing>();
-            foreach (Thing t in position.GetThingList(Map))
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Checking for existing water at " + position);
+            // Prefer direct typed lookup when available
+            existingWater = position.GetThingList(Map) != null ? position.GetThingList(Map).Find(t => t is FlowingWater) as FlowingWater : null;
+            if (existingWater != null)
             {
-                thingsAtPosition.Add(t);
-            }
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Found {thingsAtPosition.Count} things at position");
-            
-            foreach (Thing thing in thingsAtPosition)
-            {
-                WaterSpringLogger.LogDebug($"SpawnFlowingWater: Found thing: {thing.def.defName} (ThingID: {thing.ThingID}) at position");
-                if (thing.def.defName == "FlowingWater")
+                waterExists = true;
+                if (WaterSpringLogger.DebugEnabled)
                 {
-                    waterExists = true;
-                    existingWater = thing as FlowingWater;
-                    WaterSpringLogger.LogDebug($"SpawnFlowingWater: Found existing water with volume: {existingWater?.Volume}");
-                    break;
+                    WaterSpringLogger.LogDebug("SpawnFlowingWater: Found existing water with volume: " + existingWater.Volume);
                 }
             }
             
@@ -161,7 +164,10 @@ namespace WaterSpringMod.WaterSpring
             {
                 // Add volume to existing water
                 int oldVolume = existingWater.Volume;
-                WaterSpringLogger.LogDebug($"SpawnFlowingWater: Adding volume to existing water. Current volume: {oldVolume}");
+                if (WaterSpringLogger.DebugEnabled)
+                {
+                    WaterSpringLogger.LogDebug("SpawnFlowingWater: Adding volume to existing water. Current volume: " + oldVolume);
+                }
                 var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
                 if (s != null && s.springUseBacklog && existingWater.Volume >= FlowingWater.MaxVolume)
                 {
@@ -169,23 +175,32 @@ namespace WaterSpringMod.WaterSpring
                     if (backlog < Math.Max(0, s.springBacklogCap))
                     {
                         backlog++;
-                        WaterSpringLogger.LogDebug($"SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now {backlog}/{s.springBacklogCap}");
+                        if (WaterSpringLogger.DebugEnabled)
+                        {
+                            WaterSpringLogger.LogDebug("SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now " + backlog + "/" + s.springBacklogCap);
+                        }
                     }
                     else
                     {
-                        WaterSpringLogger.LogDebug($"SpawnFlowingWater: Backlog full ({backlog}), discarding produced water");
+                        if (WaterSpringLogger.DebugEnabled)
+                        {
+                            WaterSpringLogger.LogDebug("SpawnFlowingWater: Backlog full (" + backlog + "), discarding produced water");
+                        }
                     }
                 }
                 else
                 {
                     existingWater.AddVolume(1);
                 }
-                WaterSpringLogger.LogDebug($"SpawnFlowingWater: Added volume to existing water. Old volume: {oldVolume}, New volume: {existingWater.Volume}");
+                if (WaterSpringLogger.DebugEnabled)
+                {
+                    WaterSpringLogger.LogDebug("SpawnFlowingWater: Added volume to existing water. Old volume: " + oldVolume + ", New volume: " + existingWater.Volume);
+                }
             }
             else
             {
                 // Create new water
-                WaterSpringLogger.LogDebug($"SpawnFlowingWater: No existing water found, creating new water");
+                if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: No existing water found, creating new water");
                 
                 // Let's verify the ThingDef exists in the database
                 ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
@@ -204,16 +219,16 @@ namespace WaterSpringMod.WaterSpring
                     return;
                 }
                 
-                WaterSpringLogger.LogDebug($"SpawnFlowingWater: Found FlowingWater ThingDef. Label: {waterDef.label}, Category: {waterDef.category}");
+                if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Found FlowingWater ThingDef. Label: " + waterDef.label + ", Category: " + waterDef.category);
                 Thing flowingWater = ThingMaker.MakeThing(waterDef);
                 
                 if (flowingWater != null)
                 {
-                    WaterSpringLogger.LogDebug($"SpawnFlowingWater: Successfully created FlowingWater thing of type {flowingWater.GetType().FullName}");
+                    if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Successfully created FlowingWater thing of type " + flowingWater.GetType().FullName);
                     
                     if (flowingWater is FlowingWater typedWater)
                     {
-                        WaterSpringLogger.LogDebug($"SpawnFlowingWater: Setting initial volume to 1");
+                        if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Setting initial volume to 1");
                         typedWater.Volume = 1;
                         // mark as spring source and prevent stabilization if setting enabled
                         var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
@@ -225,28 +240,30 @@ namespace WaterSpringMod.WaterSpring
                         try
                         {
                             // Spawn at position - ONLY at the spring's position
-                            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Attempting to spawn water at {position}");
+                            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Attempting to spawn water at " + position);
                             
                             // Check if something might be blocking the spawn
-                            foreach (Thing t in position.GetThingList(Map))
+                            var list = position.GetThingList(Map);
+                            for (int i = 0; list != null && i < list.Count; i++)
                             {
+                                Thing t = list[i];
                                 if (t.def.passability == Traversability.Impassable)
                                 {
-                                    WaterSpringLogger.LogWarning($"SpawnFlowingWater: Impassable thing at position: {t.def.defName}");
+                                    WaterSpringLogger.LogWarning("SpawnFlowingWater: Impassable thing at position: " + t.def.defName);
                                 }
                             }
                             
                             GenSpawn.Spawn(flowingWater, position, Map);
-                            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Successfully spawned new water at {position} with volume {typedWater.Volume}");
+                            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Successfully spawned new water at " + position + " with volume " + typedWater.Volume);
                         }
                         catch (Exception ex)
                         {
-                            WaterSpringLogger.LogWarning($"SpawnFlowingWater: Exception while spawning water: {ex.Message}\n{ex.StackTrace}");
+                            WaterSpringLogger.LogWarning("SpawnFlowingWater: Exception while spawning water: " + ex.Message + "\n" + ex.StackTrace);
                         }
                     }
                     else
                     {
-                        WaterSpringLogger.LogWarning($"SpawnFlowingWater: Created thing is not a FlowingWater instance! Actual type: {flowingWater.GetType().FullName}");
+                        WaterSpringLogger.LogWarning("SpawnFlowingWater: Created thing is not a FlowingWater instance! Actual type: " + flowingWater.GetType().FullName);
                     }
                 }
                 else
@@ -254,7 +271,7 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogWarning($"SpawnFlowingWater: Failed to make FlowingWater thing!");
                 }
             }
-            WaterSpringLogger.LogDebug($"SpawnFlowingWater: Completed water spawn process");
+            if (WaterSpringLogger.DebugEnabled) WaterSpringLogger.LogDebug("SpawnFlowingWater: Completed water spawn process");
         }
 
         private void TryInjectBacklog()
@@ -264,7 +281,16 @@ namespace WaterSpringMod.WaterSpring
             if (s == null || !s.springUseBacklog) return;
 
             // Try to find capacity to inject into spring tile or an adjacent water tile
-            FlowingWater atSpring = this.Position.GetThingList(Map)?.FirstOrDefault(t => t is FlowingWater) as FlowingWater;
+            FlowingWater atSpring = null;
+            var list = this.Position.GetThingList(Map);
+            for (int i = 0; list != null && i < list.Count; i++)
+            {
+                if (list[i] is FlowingWater fw)
+                {
+                    atSpring = fw;
+                    break;
+                }
+            }
             if (atSpring != null && atSpring.Volume < FlowingWater.MaxVolume)
             {
                 atSpring.AddVolume(1);
@@ -281,7 +307,16 @@ namespace WaterSpringMod.WaterSpring
             {
                 IntVec3 p = Position + dir;
                 if (!p.InBounds(Map) || !p.Walkable(Map)) continue;
-                var w = p.GetThingList(Map)?.FirstOrDefault(t => t is FlowingWater) as FlowingWater;
+                FlowingWater w = null;
+                var nl = p.GetThingList(Map);
+                for (int i = 0; nl != null && i < nl.Count; i++)
+                {
+                    if (nl[i] is FlowingWater fw)
+                    {
+                        w = fw;
+                        break;
+                    }
+                }
                 if (w != null && w.Volume < FlowingWater.MaxVolume && w.Volume < bestVol)
                 {
                     best = w; bestVol = w.Volume; bestPos = p;

@@ -9,6 +9,7 @@ namespace WaterSpringMod.WaterSpring
     // GameComponent for centralized water diffusion management
     public class GameComponent_WaterDiffusion : GameComponent
     {
+    private const int MaxVolumeLabelsPerFrame = 256; // safeguard for on-GUI text cost
         // Central registry of active water tiles by map
         private Dictionary<Map, HashSet<IntVec3>> activeWaterTilesByMap = new Dictionary<Map, HashSet<IntVec3>>();
         
@@ -29,6 +30,18 @@ namespace WaterSpringMod.WaterSpring
     private int activeWaterTileCount = 0;
     // Reentrancy guard for ReactivateInRadius
     private bool reactivatingNow = false;
+    // Reusable scratch buffers to reduce per-tick allocations
+    private readonly List<IntVec3> scratchTiles = new List<IntVec3>(1024);
+    private readonly HashSet<IntVec3> scratchTilesToRemove = new HashSet<IntVec3>();
+    private readonly List<ChunkCoordinate> scratchChunks = new List<ChunkCoordinate>(256);
+    private readonly HashSet<ChunkCoordinate> scratchChunksToRemove = new HashSet<ChunkCoordinate>();
+    private readonly List<IntVec3> scratchChunkTiles = new List<IntVec3>(1024);
+    private readonly HashSet<IntVec3> scratchChunkRemovals = new HashSet<IntVec3>();
+    // Reusable BFS structures for terrain-change waves
+    private readonly Queue<IntVec3> bfsFrontier = new Queue<IntVec3>(256);
+    private readonly HashSet<IntVec3> bfsVisited = new HashSet<IntVec3>();
+    // Scratch list for drawing to avoid concurrent modification of sets during enumeration
+    private readonly List<IntVec3> scratchDrawTiles = new List<IntVec3>(2048);
         
     // Global tick/frequency trackers
     private int tickCounter = 0;
@@ -36,6 +49,10 @@ namespace WaterSpringMod.WaterSpring
     private float tpsAccumulator = 0f;
     private int tpsSampleCount = 0;
     private int ticksSinceLastUpdate = 0;
+    // Logging throttles
+    private float lastTPSLogged = -1f;
+    private int lastTPSLogTick = -1000000;
+    private int lastThrottleLogTick = -1000000;
         
         // Debug visualization
         public bool ShowActiveWaterDebug = false;
@@ -45,7 +62,10 @@ namespace WaterSpringMod.WaterSpring
         
         public GameComponent_WaterDiffusion(Game game) : base()
         {
-            WaterSpringLogger.LogDebug("GameComponent_WaterDiffusion initialized");
+            if (Settings.debugModeEnabled)
+            {
+                WaterSpringLogger.LogDebug("GameComponent_WaterDiffusion initialized");
+            }
         }
 
         // Get active water tiles for a specific map
@@ -60,7 +80,10 @@ namespace WaterSpringMod.WaterSpring
             if (!activeWaterTilesByMap.ContainsKey(map))
             {
                 activeWaterTilesByMap[map] = new HashSet<IntVec3>();
-                WaterSpringLogger.LogDebug($"Created new active water tile registry for map {map.uniqueID}");
+                if (Settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"Created new active water tile registry for map {map.uniqueID}");
+                }
             }
             
             return activeWaterTilesByMap[map];
@@ -78,7 +101,10 @@ namespace WaterSpringMod.WaterSpring
             if (!activeChunks.ContainsKey(map))
             {
                 activeChunks[map] = new HashSet<ChunkCoordinate>();
-                WaterSpringLogger.LogDebug($"Created new active chunks registry for map {map.uniqueID}");
+                if (Settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"Created new active chunks registry for map {map.uniqueID}");
+                }
             }
             
             return activeChunks[map];
@@ -96,7 +122,10 @@ namespace WaterSpringMod.WaterSpring
             if (!waterTilesByChunk.ContainsKey(map))
             {
                 waterTilesByChunk[map] = new Dictionary<ChunkCoordinate, HashSet<IntVec3>>();
-                WaterSpringLogger.LogDebug($"Created new water tiles by chunk registry for map {map.uniqueID}");
+                if (Settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"Created new water tiles by chunk registry for map {map.uniqueID}");
+                }
             }
             
             return waterTilesByChunk[map];
@@ -128,7 +157,10 @@ namespace WaterSpringMod.WaterSpring
             {
                 int chunkSize = Settings.chunkSize;
                 spatialIndices[map] = new ChunkBasedSpatialIndex(map, chunkSize);
-                WaterSpringLogger.LogDebug($"Created new spatial index for map {map.uniqueID} with chunk size {chunkSize}");
+                if (Settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"Created new spatial index for map {map.uniqueID} with chunk size {chunkSize}");
+                }
             }
             
             return spatialIndices[map];
@@ -154,7 +186,10 @@ namespace WaterSpringMod.WaterSpring
             if (map == null) return;
             
             GetActiveChunks(map).Add(chunkCoord);
-            WaterSpringLogger.LogDebug($"Registered active chunk {chunkCoord} on map {map.uniqueID}");
+            if (Settings.debugModeEnabled)
+            {
+                WaterSpringLogger.LogDebug($"Registered active chunk {chunkCoord} on map {map.uniqueID}");
+            }
         }
         
         // Unregister a chunk from active list
@@ -165,7 +200,10 @@ namespace WaterSpringMod.WaterSpring
             if (activeChunks.ContainsKey(map))
             {
                 activeChunks[map].Remove(chunkCoord);
-                WaterSpringLogger.LogDebug($"Unregistered chunk {chunkCoord} from map {map.uniqueID}");
+                if (Settings.debugModeEnabled)
+                {
+                    WaterSpringLogger.LogDebug($"Unregistered chunk {chunkCoord} from map {map.uniqueID}");
+                }
             }
         }
         
@@ -181,7 +219,7 @@ namespace WaterSpringMod.WaterSpring
             }
             
             bool wasAdded = GetActiveWaterTiles(map).Add(position);
-            if (wasAdded)
+            if (wasAdded && Settings.debugModeEnabled)
             {
                 WaterSpringLogger.LogDebug($"Registered active water tile at {position} on map {map.uniqueID}");
             }
@@ -212,7 +250,7 @@ namespace WaterSpringMod.WaterSpring
             if (activeWaterTilesByMap.ContainsKey(map))
             {
                 bool wasRemoved = activeWaterTilesByMap[map].Remove(position);
-                if (wasRemoved)
+                if (wasRemoved && Settings.debugModeEnabled)
                 {
                     WaterSpringLogger.LogDebug($"Unregistered water tile at {position} from map {map.uniqueID}");
                 }
@@ -398,29 +436,32 @@ namespace WaterSpringMod.WaterSpring
                     // Also activate its neighbors
                     ActivateNeighbors(map, adjacentPos);
                     
-                    WaterSpringLogger.LogDebug($"Water at {adjacentPos} reactivated due to terrain change at {position}");
+                    if (Settings.debugModeEnabled)
+                    {
+                        WaterSpringLogger.LogDebug($"Water at {adjacentPos} reactivated due to terrain change at {position}");
+                    }
                 }
             }
 
             // Propagate a bounded reactivation wave backwards from the changed position
-            // to ensure the path toward the source wakes up.
+            // to ensure the path toward the source wakes up. Reuse scratch BFS buffers.
             int maxWaveSteps = 32; // safety bound
-            var frontier = new Queue<IntVec3>();
-            var visited = new HashSet<IntVec3>();
-            frontier.Enqueue(position);
-            visited.Add(position);
+            bfsFrontier.Clear();
+            bfsVisited.Clear();
+            bfsFrontier.Enqueue(position);
+            bfsVisited.Add(position);
             int steps = 0;
-            while (frontier.Count > 0 && steps < maxWaveSteps)
+            while (bfsFrontier.Count > 0 && steps < maxWaveSteps)
             {
-                int breadth = frontier.Count;
+                int breadth = bfsFrontier.Count;
                 for (int i = 0; i < breadth; i++)
                 {
-                    var p = frontier.Dequeue();
+                    var p = bfsFrontier.Dequeue();
                     foreach (var d in GenAdj.CardinalDirections)
                     {
                         var np = p + d;
-                        if (!np.InBounds(map) || visited.Contains(np) || !np.Walkable(map)) continue;
-                        visited.Add(np);
+                        if (!np.InBounds(map) || bfsVisited.Contains(np) || !np.Walkable(map)) continue;
+                        bfsVisited.Add(np);
                         var w = map.thingGrid.ThingAt<FlowingWater>(np);
                         if (w == null) continue;
                         // Only wake tiles that were explicitly deregistered and have any potential flow
@@ -443,7 +484,7 @@ namespace WaterSpringMod.WaterSpring
                                 RegisterActiveTile(map, np);
                             }
                         }
-                        frontier.Enqueue(np);
+                        bfsFrontier.Enqueue(np);
                     }
                 }
                 steps++;
@@ -566,11 +607,18 @@ namespace WaterSpringMod.WaterSpring
                         lastTPS = tpsAccumulator / tpsSampleCount;
                         tpsAccumulator = 0f;
                         tpsSampleCount = 0;
-                        
-                        // Log TPS if in debug mode
+                        // Throttle TPS logging: only if debug, at most every 120 ticks, and if value changed meaningfully
                         if (Settings.debugModeEnabled)
                         {
-                            WaterSpringLogger.LogDebug($"Current TPS: {lastTPS:F1}, Min Target: {Settings.minTPS:F1}");
+                            bool enoughTime = (tickCounter - lastTPSLogTick) >= 120;
+                            float delta = Mathf.Abs(lastTPS - lastTPSLogged);
+                            bool significant = delta >= 3.0f || (lastTPSLogged > 0f && (delta / lastTPSLogged) >= 0.05f);
+                            if (enoughTime && significant)
+                            {
+                                WaterSpringLogger.LogDebug($"Current TPS: {lastTPS:F1}, Min Target: {Settings.minTPS:F1}");
+                                lastTPSLogged = lastTPS;
+                                lastTPSLogTick = tickCounter;
+                            }
                         }
                     }
                     
@@ -584,10 +632,14 @@ namespace WaterSpringMod.WaterSpring
                         // Only process if we've waited long enough
                         shouldProcessThisTick = shouldProcessThisTick && (ticksSinceLastUpdate >= (Settings.globalUpdateFrequency + additionalDelay));
                         
-                        // Log throttling if in debug mode
+                        // Log throttling if in debug mode (throttled)
                         if (shouldProcessThisTick && Settings.debugModeEnabled)
                         {
-                            WaterSpringLogger.LogDebug($"Throttling water processing due to low TPS. Additional delay: {additionalDelay} ticks");
+                            if ((tickCounter - lastThrottleLogTick) >= 300)
+                            {
+                                WaterSpringLogger.LogDebug($"Throttling water processing due to low TPS. Additional delay: {additionalDelay} ticks");
+                                lastThrottleLogTick = tickCounter;
+                            }
                         }
                     }
                 }
@@ -629,97 +681,75 @@ namespace WaterSpringMod.WaterSpring
             tilesProcessedLastTick = 0;
             HashSet<ChunkCoordinate> mapActiveChunks = GetActiveChunks(map);
             activeChunkCount = mapActiveChunks.Count;
-            
-            // Create a copy of the active chunks to avoid concurrent modification
-            List<ChunkCoordinate> chunksToProcess = new List<ChunkCoordinate>(mapActiveChunks);
-            HashSet<ChunkCoordinate> chunksToRemove = new HashSet<ChunkCoordinate>();
-            
-            // If we have too many active chunks, warn about it
+
+            // Copy active chunks into scratch list
+            scratchChunks.Clear();
+            scratchChunks.AddRange(mapActiveChunks);
+            scratchChunksToRemove.Clear();
+
             int chunkProcessLimit = Settings.maxProcessedChunksPerTick;
-            if (chunksToProcess.Count > chunkProcessLimit)
+            if (scratchChunks.Count > chunkProcessLimit)
             {
                 ticksAtFullCapacity++;
-                
-                // Only log every 60 ticks to avoid spam
                 if (ticksAtFullCapacity % 60 == 0)
                 {
-                    WaterSpringLogger.LogWarning($"Water chunk system at processing capacity for {ticksAtFullCapacity} ticks. " +
-                                               $"Active chunks: {chunksToProcess.Count}, Max: {chunkProcessLimit}");
+                    WaterSpringLogger.LogWarning($"Water chunk system at processing capacity for {ticksAtFullCapacity} ticks. Active chunks: {scratchChunks.Count}, Max: {chunkProcessLimit}");
                 }
             }
             else
             {
                 ticksAtFullCapacity = 0;
             }
-            
-            // Limit how many chunks we process per tick to prevent lag
-            int processLimit = Mathf.Min(chunksToProcess.Count, chunkProcessLimit);
-            
-            // Process random chunks up to the limit for better distribution
+
+            int processLimit = Mathf.Min(scratchChunks.Count, chunkProcessLimit);
+
             for (int i = 0; i < processLimit; i++)
             {
-                // Get a random index from the remaining chunks
-                int randomIndex = Rand.Range(i, chunksToProcess.Count);
+                int randomIndex = Rand.Range(i, scratchChunks.Count);
                 if (randomIndex != i)
                 {
-                    ChunkCoordinate temp = chunksToProcess[i];
-                    chunksToProcess[i] = chunksToProcess[randomIndex];
-                    chunksToProcess[randomIndex] = temp;
+                    ChunkCoordinate tmp = scratchChunks[i];
+                    scratchChunks[i] = scratchChunks[randomIndex];
+                    scratchChunks[randomIndex] = tmp;
                 }
-                
-                ChunkCoordinate chunk = chunksToProcess[i];
-                
-                // Get all water tiles in this chunk
+
+                ChunkCoordinate chunk = scratchChunks[i];
                 HashSet<IntVec3> waterTilesInChunk = GetWaterTilesInChunk(map, chunk);
-                
-                // Skip empty chunks
                 if (waterTilesInChunk.Count == 0)
                 {
-                    chunksToRemove.Add(chunk);
+                    scratchChunksToRemove.Add(chunk);
                     continue;
                 }
-                
-                // Implement checkerboard pattern if enabled
+
                 if (Settings.useCheckerboardPattern)
                 {
-                    // Determine if this chunk should be processed this tick based on checkerboard pattern
-                    // This creates a staggered update pattern where alternate chunks update on different ticks
                     bool isEvenTick = (tickCounter % 2 == 0);
                     bool isEvenChunk = ((chunk.X + chunk.Z) % 2 == 0);
-                    
-                    // Skip if this isn't the right tick for this chunk
                     if (isEvenTick != isEvenChunk)
                     {
                         continue;
                     }
                 }
-                
-                // Process the tiles in this chunk using normal processing
-                List<IntVec3> chunkTilesToProcess = new List<IntVec3>(waterTilesInChunk);
-                HashSet<IntVec3> tilesToRemove = new HashSet<IntVec3>();
-                
-                ProcessWaterTilesInChunk(map, chunk, waterTilesInChunk, tilesToRemove);
-                
-                // Remove inactive tiles from the chunk
-                foreach (IntVec3 pos in tilesToRemove)
+
+                scratchChunkRemovals.Clear();
+                ProcessWaterTilesInChunk(map, chunk, waterTilesInChunk, scratchChunkRemovals);
+
+                foreach (IntVec3 pos in scratchChunkRemovals)
                 {
                     UnregisterActiveTile(map, pos);
                 }
-                
-                // If the chunk is now empty, mark it for removal
+
                 if (GetWaterTilesInChunk(map, chunk).Count == 0)
                 {
-                    chunksToRemove.Add(chunk);
+                    scratchChunksToRemove.Add(chunk);
                 }
             }
-            
-            // Remove empty chunks from active list
-            foreach (ChunkCoordinate chunk in chunksToRemove)
+
+            foreach (ChunkCoordinate cc in scratchChunksToRemove)
             {
-                UnregisterActiveChunk(map, chunk);
+                UnregisterActiveChunk(map, cc);
             }
         }
-        
         // Process active chunks using multi-phase method
     // Multi-phase removed
         
@@ -729,109 +759,81 @@ namespace WaterSpringMod.WaterSpring
             tilesProcessedLastTick = 0;
             HashSet<IntVec3> activeTiles = GetActiveWaterTiles(map);
             activeWaterTileCount = activeTiles.Count;
-            
-            // Create a copy of the active tiles to avoid concurrent modification
-            List<IntVec3> tilesToProcess = new List<IntVec3>(activeTiles);
-            HashSet<IntVec3> tilesToRemove = new HashSet<IntVec3>();
-            
-            // If we have too many active tiles, warn about it
+
+            scratchTiles.Clear();
+            scratchTiles.AddRange(activeTiles);
+            scratchTilesToRemove.Clear();
+
             if (activeTiles.Count > Settings.maxProcessedTilesPerTick)
             {
                 ticksAtFullCapacity++;
-                
-                // Only log every 60 ticks to avoid spam
                 if (ticksAtFullCapacity % 60 == 0)
                 {
-                    WaterSpringLogger.LogWarning($"Water system at processing capacity for {ticksAtFullCapacity} ticks. " +
-                                               $"Active tiles: {activeTiles.Count}, Max: {Settings.maxProcessedTilesPerTick}");
+                    WaterSpringLogger.LogWarning($"Water system at processing capacity for {ticksAtFullCapacity} ticks. Active tiles: {activeTiles.Count}, Max: {Settings.maxProcessedTilesPerTick}");
                 }
             }
             else
             {
                 ticksAtFullCapacity = 0;
             }
-            
-            // Limit how many tiles we process per tick to prevent lag
-            int processLimit = Mathf.Min(tilesToProcess.Count, Settings.maxProcessedTilesPerTick);
-            int processed = 0;
-            
-            // Process tiles up to the limit - prioritize random tiles to avoid always processing the same ones
-            // This gives better distribution of processing across the water system
+
+            int processLimit = Mathf.Min(scratchTiles.Count, Settings.maxProcessedTilesPerTick);
+
             for (int i = 0; i < processLimit; i++)
             {
-                // Get a random index and swap with current position for efficient removal
-                int randomIndex = Rand.Range(i, tilesToProcess.Count);
+                int randomIndex = Rand.Range(i, scratchTiles.Count);
                 if (randomIndex != i)
                 {
-                    IntVec3 temp = tilesToProcess[i];
-                    tilesToProcess[i] = tilesToProcess[randomIndex];
-                    tilesToProcess[randomIndex] = temp;
+                    IntVec3 tmp = scratchTiles[i];
+                    scratchTiles[i] = scratchTiles[randomIndex];
+                    scratchTiles[randomIndex] = tmp;
                 }
-                
-                // Get the position to process
-                IntVec3 pos = tilesToProcess[i];
-                
-                // Use the spatial index for faster lookup when chunk processing is enabled
+
+                IntVec3 pos = scratchTiles[i];
                 FlowingWater water = GetWaterAt(map, pos);
-                
-                // Skip if water no longer exists at this position
                 if (water == null)
                 {
-                    tilesToRemove.Add(pos);
+                    scratchTilesToRemove.Add(pos);
                     continue;
                 }
-                
-                // Only process water that's ready for diffusion and not stable
+
                 if (water.ticksUntilNextCheck <= 0 && !water.IsStable())
                 {
-                    // Get the processing interval based on stability
                     int interval = Mathf.Max(1, water.GetProcessingInterval());
-
-                    // Process the water tile immediately when its local timer elapses
                     bool changed = water.AttemptLocalDiffusion();
 
-                    // If it didn't change, mark for potential removal from active list
                     if (!changed)
                     {
                         water.IncrementStabilityCounter();
-
                         if (water.IsStable())
                         {
-                            tilesToRemove.Add(pos);
-                            water.MarkAsStable(); // Mark as explicitly stable
+                            scratchTilesToRemove.Add(pos);
+                            water.MarkAsStable();
                         }
                     }
                     else
                     {
-                        // Reset stability counter on change
                         water.ResetStabilityCounter();
-
-                        // Activate neighbors when water changes
                         ActivateNeighbors(map, pos);
                     }
 
-                    // Reset the water's timer using settings plus tier interval as an additive delay
                     var s = Settings;
                     int minI = Mathf.Max(1, s.localCheckIntervalMin);
                     int maxI = Mathf.Max(minI, s.localCheckIntervalMax);
                     int baseDelay = Rand.Range(minI, maxI);
                     int tierDelay = Math.Max(0, interval - 1);
-                    // Clamp to prevent int overflow and avoid negative timers
                     long nextDelay = (long)baseDelay + (long)tierDelay;
                     water.ticksUntilNextCheck = (int)Mathf.Clamp(nextDelay, 1, int.MaxValue - 1);
                 }
-                
-                processed++;
+
                 tilesProcessedLastTick++;
             }
-            
-            // Remove stable tiles from active list
-            foreach (IntVec3 pos in tilesToRemove)
+
+            foreach (IntVec3 pos in scratchTilesToRemove)
             {
                 UnregisterActiveTile(map, pos);
             }
         }
-        
         // Process active water tiles using multi-phase method
     // Multi-phase removed
         
@@ -839,6 +841,10 @@ namespace WaterSpringMod.WaterSpring
         public override void GameComponentOnGUI()
         {
             base.GameComponentOnGUI();
+            #if WATERPHYSICS_DEV
+            // Dev-only harness hook (safe no-op when symbol is absent)
+            PerfHarness.OnGUI();
+            #endif
             
             // Debug toggle shortcut (Alt+W)
             if (Prefs.DevMode && Current.Game != null && Event.current.type == EventType.KeyDown &&
@@ -852,22 +858,60 @@ namespace WaterSpringMod.WaterSpring
             if ((ShowActiveWaterDebug || Settings.showPerformanceStats) && Find.CurrentMap != null)
             {
                 HashSet<IntVec3> activeTiles = GetActiveWaterTiles(Find.CurrentMap);
-                
                 // Draw visualization if enabled
                 if (ShowActiveWaterDebug)
                 {
-                    // Draw active tiles with red circles
-                    foreach (IntVec3 pos in activeTiles)
+                    if (Event.current.type == EventType.Repaint)
                     {
-                        Vector3 drawPos = pos.ToVector3Shifted();
-                        drawPos.y = AltitudeLayer.MetaOverlays.AltitudeFor();
-                        
-                        // Draw red circle for active tiles
-                        GenDraw.DrawCircleOutline(drawPos, 0.5f, SimpleColor.Red);
-                    }
+                        // Status label
+                        float y = Settings.showPerformanceStats ? 30f : 10f;
+                        Widgets.Label(new Rect(10f, y, 420f, 22f), $"[WaterPhysics] Active tiles: {activeTiles.Count} (overlay ON)");
+                        // Copy to scratch list to avoid enumerating a mutating set
+                        scratchDrawTiles.Clear();
+                        scratchDrawTiles.AddRange(activeTiles);
+                        // Draw field edges for all active cells for a clear, persistent overlay
+                        if (scratchDrawTiles.Count > 0)
+                        {
+                            GenDraw.DrawFieldEdges(scratchDrawTiles);
+                            // Fallback: also flash cells to guarantee visibility in case edges are not apparent
+                            int maxFlash = Mathf.Min(scratchDrawTiles.Count, 512);
+                            for (int i = 0; i < maxFlash; i++)
+                            {
+                                Find.CurrentMap.debugDrawer.FlashCell(scratchDrawTiles[i], 0.15f);
+                            }
+
+                            // Draw volume numbers (capped) for visible clarity; uses tiny font to minimize cost
+                            int drawn = 0;
+                            var map = Find.CurrentMap;
+                            var oldFont = Text.Font;
+                            var oldAnchor = Text.Anchor;
+                            Text.Font = GameFont.Tiny;
+                            Text.Anchor = TextAnchor.MiddleCenter;
+                            for (int i = 0; i < scratchDrawTiles.Count && drawn < MaxVolumeLabelsPerFrame; i++)
+                            {
+                                IntVec3 c = scratchDrawTiles[i];
+                                FlowingWater w = GetWaterAt(map, c);
+                                if (w == null) continue;
+                                string txt = w.Volume.ToString();
+                                Vector3 world = c.ToVector3Shifted();
+                                // Try stock label drawer (may be gated by zoom/settings)
+                                GenMapUI.DrawThingLabel(world, txt, Color.yellow);
+                                // Manual screen-space fallback so text is always visible
+                                Vector2 uiPos = GenMapUI.LabelDrawPosFor(c);
+                                Vector2 size = Text.CalcSize(txt);
+                                Rect r = new Rect(uiPos.x - size.x * 0.5f, uiPos.y - size.y * 0.5f, size.x, size.y);
+                                var oldColor = GUI.color;
+                                GUI.color = Color.yellow;
+                                Widgets.Label(r, txt);
+                                GUI.color = oldColor;
+                                drawn++;
+                            }
+                            Text.Font = oldFont;
+                            Text.Anchor = oldAnchor;
+                        }
                     
                     // Draw chunk boundaries if chunk processing is enabled
-                    if (Settings.useChunkBasedProcessing)
+                        if (Settings.useChunkBasedProcessing)
                     {
                         HashSet<ChunkCoordinate> activeChunksForMap = GetActiveChunks(Find.CurrentMap);
                         foreach (ChunkCoordinate chunk in activeChunksForMap)
@@ -880,7 +924,6 @@ namespace WaterSpringMod.WaterSpring
                             Vector3 v2 = new Vector3(max.x + 1, AltitudeLayer.MetaOverlays.AltitudeFor(), min.z);
                             Vector3 v3 = new Vector3(max.x + 1, AltitudeLayer.MetaOverlays.AltitudeFor(), max.z + 1);
                             Vector3 v4 = new Vector3(min.x, AltitudeLayer.MetaOverlays.AltitudeFor(), max.z + 1);
-                            
                             // Draw each edge of the chunk
                             GenDraw.DrawLineBetween(v1, v2, SimpleColor.Green);
                             GenDraw.DrawLineBetween(v2, v3, SimpleColor.Green);
@@ -888,10 +931,11 @@ namespace WaterSpringMod.WaterSpring
                             GenDraw.DrawLineBetween(v4, v1, SimpleColor.Green);
                         }
                     }
+                    }
                     
                     // Draw stable (explicitly deregistered) water tiles with blue circles
                     // (This is more expensive as we need to check all water tiles)
-                    if (Settings.showDetailedDebug)
+                if (Settings.showDetailedDebug && Event.current.type == EventType.Repaint)
                     {
                         List<Thing> allWaterTiles = Find.CurrentMap.listerThings.ThingsOfDef(DefDatabase<ThingDef>.GetNamed("FlowingWater"));
                         foreach (Thing t in allWaterTiles)

@@ -18,6 +18,60 @@ namespace WaterSpringMod
         
         // Tab system for settings
         private int selectedTab = 0;
+        // UI caching helpers
+        private static readonly GUIContent GC_GeneralHeader = new GUIContent("<color=yellow>General Settings</color>");
+        private static readonly GUIContent GC_S1_Header = new GUIContent("<color=yellow>Strategy 1: Active Tile Management</color>");
+        private static readonly GUIContent GC_S1_DiffusionRules = new GUIContent("<color=yellow>Diffusion Rules</color>");
+        private static readonly GUIContent GC_S1_SpringBehavior = new GUIContent("<color=yellow>Spring Behavior</color>");
+        private static readonly GUIContent GC_S1_Reactivation = new GUIContent("<color=yellow>Reactivation Wave</color>");
+        private static readonly GUIContent GC_S3_Header = new GUIContent("<color=yellow>Strategy 3: Chunk-based Processing</color>");
+        private static readonly GUIContent GC_S5_Header = new GUIContent("<color=yellow>Strategy 5: Update Frequency Optimization</color>");
+        private static readonly GUIContent GC_Debug_Header = new GUIContent("<color=yellow>Debug & Visualization</color>");
+        private static readonly GUIContent GC_Dev_Header = new GUIContent("<color=orange>DEVELOPER TOOLS</color>");
+        // Reusable dynamic GUIContent and string builder to avoid per-frame allocations
+        private readonly GUIContent _tmpContent = new GUIContent();
+        private readonly System.Text.StringBuilder _sb = new System.Text.StringBuilder(128);
+        private void LabelCached(Listing_Standard listing, GUIContent content)
+        {
+            Rect r = listing.GetRect(Text.LineHeight);
+            Widgets.Label(r, content);
+            if (!string.IsNullOrEmpty(content.tooltip))
+            {
+                TooltipHandler.TipRegion(r, content.tooltip);
+            }
+        }
+        private void LabelDynamicInt(Listing_Standard listing, string prefix, int value, string suffix = null, string tooltip = null)
+        {
+            _sb.Clear();
+            if (!string.IsNullOrEmpty(prefix)) _sb.Append(prefix);
+            _sb.Append(value);
+            if (!string.IsNullOrEmpty(suffix)) _sb.Append(suffix);
+            _tmpContent.text = _sb.ToString();
+            _tmpContent.tooltip = tooltip;
+            LabelCached(listing, _tmpContent);
+        }
+        private void LabelDynamicIntPair(Listing_Standard listing, string prefix, int v1, string middle, int v2, string suffix = null, string tooltip = null)
+        {
+            _sb.Clear();
+            if (!string.IsNullOrEmpty(prefix)) _sb.Append(prefix);
+            _sb.Append(v1);
+            if (!string.IsNullOrEmpty(middle)) _sb.Append(middle);
+            _sb.Append(v2);
+            if (!string.IsNullOrEmpty(suffix)) _sb.Append(suffix);
+            _tmpContent.text = _sb.ToString();
+            _tmpContent.tooltip = tooltip;
+            LabelCached(listing, _tmpContent);
+        }
+        private void LabelDynamicFloat(Listing_Standard listing, string prefix, float value, string suffix = null, string tooltip = null)
+        {
+            _sb.Clear();
+            if (!string.IsNullOrEmpty(prefix)) _sb.Append(prefix);
+            _sb.Append(value.ToString("F1"));
+            if (!string.IsNullOrEmpty(suffix)) _sb.Append(suffix);
+            _tmpContent.text = _sb.ToString();
+            _tmpContent.tooltip = tooltip;
+            LabelCached(listing, _tmpContent);
+        }
         
         // Static reference for easy access
         public static WaterSpringModMain Instance { get; private set; }
@@ -27,6 +81,8 @@ namespace WaterSpringMod
             Instance = this; // Set the static reference
             settings = GetSettings<WaterSpringModSettings>();
             diffusionManager = new WaterDiffusionManager();
+            // Sync logger cache with current settings
+            WaterSpring.WaterSpringLogger.SetDebugEnabled(settings?.debugModeEnabled == true);
         }
 
         public override string SettingsCategory()
@@ -74,24 +130,30 @@ namespace WaterSpringMod
             {
                 case 0: // General Settings
                     // General settings header
-                    listingStandard.Label("<color=yellow>General Settings</color>");
+                    LabelCached(listingStandard, GC_GeneralHeader);
                     listingStandard.Gap();
                     
                     // Spring spawn interval
-                    listingStandard.Label(
-                        "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval),
-                        tooltip: "Interval between spring spawns (ticks). Lower = faster water production; higher = slower.");
+                    _tmpContent.text = "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval);
+                    _tmpContent.tooltip = "Interval between spring spawns (ticks). Lower = faster water production; higher = slower.";
+                    LabelCached(listingStandard, _tmpContent);
                     settings.waterSpringSpawnInterval = (int)listingStandard.Slider(settings.waterSpringSpawnInterval, 10, 1000);
                     
                     // Debug mode
                     listingStandard.Gap();
-                    listingStandard.CheckboxLabeled("Debug Mode (Enable Logging)", ref settings.debugModeEnabled, 
+                    bool dbg = settings.debugModeEnabled;
+                    listingStandard.CheckboxLabeled("Debug Mode (Enable Logging)", ref dbg, 
                         "Enable detailed logging for water springs. Warning: This may impact performance and create large log files.");
+                    if (dbg != settings.debugModeEnabled)
+                    {
+                        settings.debugModeEnabled = dbg;
+                        WaterSpring.WaterSpringLogger.SetDebugEnabled(dbg);
+                    }
                     break;
                 
                 case 1: // Strategy 1: Active Tile Management
                     // Strategy 1 header
-                    listingStandard.Label("<color=yellow>Strategy 1: Active Tile Management</color>");
+                    LabelCached(listingStandard, GC_S1_Header);
                     listingStandard.Gap();
                     
                     // Active tile system checkbox
@@ -100,31 +162,31 @@ namespace WaterSpringMod
                     
                     // Stability cap (only rule): tile becomes stable when reaching this many no-change attempts
                     listingStandard.Gap();
-                    listingStandard.Label($"Stability Cap: {settings.stabilityCap} no-change attempts",
-                        tooltip: $"A tile is considered stable ONLY when its stability counter reaches this cap (currently {settings.stabilityCap}).\\nStability increases by 1 each time the tile is processed and no diffusion occurs.");
+                    LabelDynamicInt(listingStandard, "Stability Cap: ", settings.stabilityCap, " no-change attempts",
+                        tooltip: "A tile is considered stable ONLY when its stability counter reaches this cap.\nStability increases by 1 each time the tile is processed and no diffusion occurs.");
                     settings.stabilityCap = (int)listingStandard.Slider(settings.stabilityCap, 1, 1000);
                     listingStandard.Gap(4f);
-                    listingStandard.Label("Counts only when a tile attempts diffusion and nothing changes. Raise to require more cycles; lower to stabilize sooner.");
-                    listingStandard.Label("How many ticks a water tile must remain unchanged before it's considered stable and removed from active processing.");
+                    _tmpContent.text = "Counts only when a tile attempts diffusion and nothing changes. Raise to require more cycles; lower to stabilize sooner."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
+                    _tmpContent.text = "How many ticks a water tile must remain unchanged before it's considered stable and removed from active processing."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
                     
                     // Max processed tiles
                     listingStandard.Gap();
-                    listingStandard.Label($"Max Processed Tiles Per Tick: {settings.maxProcessedTilesPerTick}",
+                    LabelDynamicInt(listingStandard, "Max Processed Tiles Per Tick: ", settings.maxProcessedTilesPerTick, null,
                         tooltip: "Upper bound on how many active water tiles are processed per game tick. Lower improves performance but slows diffusion.");
                     settings.maxProcessedTilesPerTick = (int)listingStandard.Slider(settings.maxProcessedTilesPerTick, 50, 2000);
                     listingStandard.Gap(4f);
-                    listingStandard.Label("Maximum number of water tiles processed each tick. Lower values improve performance but slow down water diffusion.");
+                    _tmpContent.text = "Maximum number of water tiles processed each tick. Lower values improve performance but slow down water diffusion."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
 
                     // Local diffusion timing
                     listingStandard.Gap();
-                    listingStandard.Label($"Local Check Interval Min: {settings.localCheckIntervalMin} ticks",
+                    LabelDynamicInt(listingStandard, "Local Check Interval Min: ", settings.localCheckIntervalMin, " ticks",
                         tooltip: "Minimum random wait between a tile’s diffusion attempts in normal mode. Lower = more frequent attempts.");
                     settings.localCheckIntervalMin = (int)listingStandard.Slider(settings.localCheckIntervalMin, 1, Mathf.Min(600, settings.localCheckIntervalMax));
-                    listingStandard.Label($"Local Check Interval Max: {settings.localCheckIntervalMax} ticks",
+                    LabelDynamicInt(listingStandard, "Local Check Interval Max: ", settings.localCheckIntervalMax, " ticks",
                         tooltip: "Maximum random wait between a tile’s diffusion attempts in normal mode. Higher = more spread-out activity.");
                     settings.localCheckIntervalMax = (int)listingStandard.Slider(settings.localCheckIntervalMax, settings.localCheckIntervalMin, 1200);
                     listingStandard.Gap(4f);
-                    listingStandard.Label("The random wait applied to individual tiles between diffusion attempts in the normal path.");
+                    _tmpContent.text = "The random wait applied to individual tiles between diffusion attempts in the normal path."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
 
                     // Anti-backflow controls
                     listingStandard.Gap();
@@ -132,34 +194,36 @@ namespace WaterSpringMod
                         "Discourage immediate backflow into the cell that just sent water. Adds a temporary extra diff requirement.");
                     if (settings.antiBackflowEnabled)
                     {
-                        listingStandard.Label($"Backflow Cooldown: {settings.backflowCooldownTicks} ticks",
+                        LabelDynamicInt(listingStandard, "Backflow Cooldown: ", settings.backflowCooldownTicks, " ticks",
                             tooltip: "Window after outbound flow during which backflow is discouraged.");
                         settings.backflowCooldownTicks = (int)listingStandard.Slider(settings.backflowCooldownTicks, 0, 600);
-                        listingStandard.Label($"Backflow Min-Diff Bonus: +{settings.backflowMinDiffBonus}",
+                        LabelDynamicInt(listingStandard, "Backflow Min-Diff Bonus: +", settings.backflowMinDiffBonus, null,
                             tooltip: "Extra volume difference required to allow backflow during cooldown. 0 disables the penalty.");
                         settings.backflowMinDiffBonus = (int)listingStandard.Slider(settings.backflowMinDiffBonus, 0, 3);
                     }
 
                     // Diffusion rules (Normal method)
                     listingStandard.Gap();
-                    listingStandard.Label("<color=yellow>Diffusion Rules</color>");
-                    listingStandard.Label($"Minimum Volume Difference for Transfer: {settings.minVolumeDifferenceForTransfer}",
+                    LabelCached(listingStandard, GC_S1_DiffusionRules);
+                    LabelDynamicInt(listingStandard, "Minimum Volume Difference for Transfer: ", settings.minVolumeDifferenceForTransfer, null,
                         tooltip: "Minimum volume difference required for water to flow between tiles in the normal path. Prevents equal-volume oscillation. Lower spreads more; higher stabilizes faster.");
                     settings.minVolumeDifferenceForTransfer = (int)listingStandard.Slider(settings.minVolumeDifferenceForTransfer, 1, 3);
-                    listingStandard.Label("The minimum volume difference required for water to flow between tiles. Lower values allow more natural spreading, higher values improve stability and performance.");
+                    _tmpContent.text = "The minimum volume difference required for water to flow between tiles. Lower values allow more natural spreading, higher values improve stability and performance."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
 
                     // Spring behavior (Normal method)
                     listingStandard.Gap(10f);
-                    listingStandard.Label("<color=yellow>Spring Behavior</color>");
+                    LabelCached(listingStandard, GC_S1_SpringBehavior);
                     listingStandard.CheckboxLabeled("Spring uses backlog when full", ref settings.springUseBacklog,
                         "When the spring tile is full, store produced water in a small backlog and drip it out when capacity appears.");
                     if (settings.springUseBacklog)
                     {
-                        listingStandard.Label($"Backlog Cap: {settings.springBacklogCap} units",
+                        LabelDynamicInt(listingStandard, "Backlog Cap: ", settings.springBacklogCap, " units",
                             tooltip: "Maximum water units the spring can store when the source tile is full.");
                         settings.springBacklogCap = (int)listingStandard.Slider(settings.springBacklogCap, 0, 20);
-                        listingStandard.Label($"Backlog Inject Interval: every {settings.springBacklogInjectInterval} ticks",
-                            tooltip: "How often one backlog unit is injected when there is capacity.");
+                        _sb.Clear(); _sb.Append("Backlog Inject Interval: every "); _sb.Append(settings.springBacklogInjectInterval); _sb.Append(" ticks");
+                        _tmpContent.text = _sb.ToString();
+                        _tmpContent.tooltip = "How often one backlog unit is injected when there is capacity.";
+                        LabelCached(listingStandard, _tmpContent);
                         settings.springBacklogInjectInterval = (int)listingStandard.Slider(settings.springBacklogInjectInterval, 1, 300);
                     }
                     listingStandard.CheckboxLabeled("Prioritize spring tiles", ref settings.springPrioritizeTiles,
@@ -169,11 +233,11 @@ namespace WaterSpringMod
 
                     // Reactivation wave controls
                     listingStandard.Gap(10f);
-                    listingStandard.Label("<color=yellow>Reactivation Wave</color>");
-                    listingStandard.Label($"Radius: {settings.reactivationRadius} tiles",
+                    LabelCached(listingStandard, GC_S1_Reactivation);
+                    LabelDynamicInt(listingStandard, "Radius: ", settings.reactivationRadius, " tiles",
                         tooltip: "When a cell changes or a wall is removed, wake tiles within this radius.");
                     settings.reactivationRadius = (int)listingStandard.Slider(settings.reactivationRadius, 1, 32);
-                    listingStandard.Label($"Immediate Transfers Cap: {settings.reactivationMaxTiles} tiles",
+                    LabelDynamicInt(listingStandard, "Immediate Transfers Cap: ", settings.reactivationMaxTiles, " tiles",
                         tooltip: "Upper bound of tiles allowed to perform 1 immediate transfer on wake.");
                     settings.reactivationMaxTiles = (int)listingStandard.Slider(settings.reactivationMaxTiles, 0, 512);
                     listingStandard.CheckboxLabeled("Attempt one immediate transfer on wake", ref settings.reactivationImmediateTransfers,
@@ -182,7 +246,7 @@ namespace WaterSpringMod
                 
                 case 2: // Strategy 3: Chunk-based Processing
                     // Strategy 3 header
-                    listingStandard.Label("<color=yellow>Strategy 3: Chunk-based Processing</color>");
+                    LabelCached(listingStandard, GC_S3_Header);
                     listingStandard.Gap();
                     
                     // Chunk processing checkbox
@@ -193,19 +257,19 @@ namespace WaterSpringMod
                     {
                         // Chunk size
                         listingStandard.Gap();
-                        listingStandard.Label($"Chunk Size: {settings.chunkSize}x{settings.chunkSize} tiles",
+                        LabelDynamicIntPair(listingStandard, "Chunk Size: ", settings.chunkSize, "x", settings.chunkSize, " tiles",
                             tooltip: "Tile width/height of spatial chunks used for batching. Smaller = more chunks; larger = fewer, larger chunks.");
                         settings.chunkSize = (int)listingStandard.Slider(settings.chunkSize, 4, 16);
                         
                         // Max processed chunks
                         listingStandard.Gap();
-                        listingStandard.Label($"Max Processed Chunks Per Tick: {settings.maxProcessedChunksPerTick}",
+                        LabelDynamicInt(listingStandard, "Max Processed Chunks Per Tick: ", settings.maxProcessedChunksPerTick, null,
                             tooltip: "Upper bound on how many chunks are processed each tick. Lower improves performance but slows diffusion.");
                         settings.maxProcessedChunksPerTick = (int)listingStandard.Slider(settings.maxProcessedChunksPerTick, 5, 100);
                         
                         // Max processed tiles per chunk
                         listingStandard.Gap();
-                        listingStandard.Label($"Max Processed Tiles Per Chunk: {settings.maxProcessedTilesPerChunk}",
+                        LabelDynamicInt(listingStandard, "Max Processed Tiles Per Chunk: ", settings.maxProcessedTilesPerChunk, null,
                             tooltip: "Cap on water tiles processed per chunk each tick. Lower improves performance but slows diffusion.");
                         settings.maxProcessedTilesPerChunk = (int)listingStandard.Slider(settings.maxProcessedTilesPerChunk, 10, 200);
                         
@@ -218,7 +282,7 @@ namespace WaterSpringMod
                 
                 case 3: // Strategy 5: Update Frequency Optimization
                     // Strategy 5 header
-                    listingStandard.Label("<color=yellow>Strategy 5: Update Frequency Optimization</color>");
+                    LabelCached(listingStandard, GC_S5_Header);
                     listingStandard.Gap();
                     
                     // Frequency-based processing checkbox
@@ -229,8 +293,10 @@ namespace WaterSpringMod
                     {
                         // Global update frequency
                         listingStandard.Gap();
-                        listingStandard.Label($"Global Update Frequency: every {settings.globalUpdateFrequency} tick(s)",
-                            tooltip: "Run water processing only every N ticks (global gate). Larger values reduce CPU use and slow diffusion.");
+                        _sb.Clear(); _sb.Append("Global Update Frequency: every "); _sb.Append(settings.globalUpdateFrequency); _sb.Append(" tick(s)");
+                        _tmpContent.text = _sb.ToString();
+                        _tmpContent.tooltip = "Run water processing only every N ticks (global gate). Larger values reduce CPU use and slow diffusion.";
+                        LabelCached(listingStandard, _tmpContent);
                         settings.globalUpdateFrequency = (int)listingStandard.Slider(settings.globalUpdateFrequency, 1, 20);
                         
                         // Adaptive TPS throttling
@@ -241,7 +307,7 @@ namespace WaterSpringMod
                         if (settings.useAdaptiveTPS)
                         {
                             listingStandard.Gap();
-                            listingStandard.Label($"Minimum Target TPS: {settings.minTPS}",
+                            LabelDynamicFloat(listingStandard, "Minimum Target TPS: ", settings.minTPS, null,
                                 tooltip: "Adaptive throttle target ticks-per-second. When TPS falls below this, processing is delayed more.");
                             settings.minTPS = (float)Math.Round(listingStandard.Slider(settings.minTPS, 10f, 1000f), 1);
                         }
@@ -250,7 +316,7 @@ namespace WaterSpringMod
                 
                 case 4: // Debug & Developer Tools
                     // Debug header
-                    listingStandard.Label("<color=yellow>Debug & Visualization</color>");
+                    LabelCached(listingStandard, GC_Debug_Header);
                     listingStandard.Gap();
                     
                     // Performance stats
@@ -267,7 +333,7 @@ namespace WaterSpringMod
                     {
                         listingStandard.Gap();
                         listingStandard.GapLine();
-                        listingStandard.Label("<color=orange>DEVELOPER TOOLS</color>");
+                        LabelCached(listingStandard, GC_Dev_Header);
                         
                         if (listingStandard.ButtonText("Remove All Water"))
                         {
@@ -289,6 +355,13 @@ namespace WaterSpringMod
             listingStandard.End();
             Widgets.EndScrollView();
             base.DoSettingsWindowContents(inRect);
+        }
+
+        public override void WriteSettings()
+        {
+            base.WriteSettings();
+            // Ensure cache reflects persisted value
+            WaterSpring.WaterSpringLogger.SetDebugEnabled(settings?.debugModeEnabled == true);
         }
         
         public WaterSpringModSettings GetModSettings()

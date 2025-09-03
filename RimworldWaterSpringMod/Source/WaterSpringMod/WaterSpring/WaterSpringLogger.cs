@@ -8,6 +8,15 @@ namespace WaterSpringMod.WaterSpring
     public static class WaterSpringLogger
     {
         private const string LOG_PREFIX = "[WaterSpring] ";
+        // Fast-path cache for debug flag to avoid repeated mod lookups on hot paths
+        private static volatile bool _debugEnabled;
+    // Public fast-path so call sites can avoid string interpolation when disabled
+    public static bool DebugEnabled => _debugEnabled;
+        
+        public static void SetDebugEnabled(bool enabled)
+        {
+            _debugEnabled = enabled;
+        }
         
         /// <summary>
         /// Logs a message if debug mode is enabled
@@ -44,13 +53,18 @@ namespace WaterSpringMod.WaterSpring
         /// </summary>
         private static bool IsDebugEnabled()
         {
-            WaterSpringModMain modMain = LoadedModManager.GetMod<WaterSpringModMain>();
-            if (modMain != null)
+            // Use the cached flag first; this is updated by the mod on load and when settings change
+            return _debugEnabled;
+        }
+
+        // Optional heavy logging site; only compiled when WATERPHYSICS_VERBOSE is defined
+        [System.Diagnostics.Conditional("WATERPHYSICS_VERBOSE")]
+        public static void LogVerbose(string message)
+        {
+            if (IsDebugEnabled())
             {
-                WaterSpringModSettings settings = modMain.GetModSettings();
-                return settings != null && settings.debugModeEnabled;
+                Log.Message(LOG_PREFIX + message);
             }
-            return false;
         }
     }
 }
