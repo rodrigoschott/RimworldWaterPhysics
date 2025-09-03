@@ -47,6 +47,7 @@ namespace WaterSpringMod.WaterSpring
                             diffusionManager.RegisterActiveTile(Map, Position);
                 // Reset stability counter when volume changes (do not clear explicit deregister here)
                 ResetStabilityCounter();
+                // Note: Do NOT trigger ReactivateInRadius here to avoid re-entrant immediate transfers.
                         }
                     }
                     
@@ -148,6 +149,8 @@ namespace WaterSpringMod.WaterSpring
             if (!isExplicitlyDeregistered) return;
             isExplicitlyDeregistered = false;
             ResetStabilityCounter();
+            // Ensure immediate processing next tick
+            ticksUntilNextCheck = 0;
             WaterSpringLogger.LogDebug($"FlowingWater.Reactivate: Water at {Position} reactivated");
             
             // Register with the active tile system
@@ -381,7 +384,8 @@ namespace WaterSpringMod.WaterSpring
                     // First, check if there are any empty cells where we can create new water
                     // This is a priority to expand the water area. Note: If a min diff is required for transfers,
                     // expansion provides a path forward even when neighbors are equal.
-                    if (Volume > 2)
+                    // Allow expansion when there's at least 2 units to split
+                    if (Volume >= 2)
                     {
                         // Find all empty cells and randomly select one
                         var emptyCellIndices = new System.Collections.Generic.List<int>();
@@ -533,7 +537,17 @@ namespace WaterSpringMod.WaterSpring
             if (neighbor.Volume < MaxVolume && this.Volume > 0)
             {
                 // Always transfer if neighbor isn't at max volume and this water has volume to give
-                // This ensures diffusion continues even when volume differences are small
+                // Enforce minimum difference for transfers to existing water to prevent ping-pong
+                var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+                int minDiff = Mathf.Max(0, s.minVolumeDifferenceForTransfer);
+                bool neighborIsNewlySpawned = neighbor.Volume == 0; // allow expansion
+                if (!neighborIsNewlySpawned)
+                {
+                    if ((this.Volume - neighbor.Volume) < minDiff)
+                    {
+                        return false;
+                    }
+                }
                 int transferAmount = Math.Min(1, Math.Min(this.Volume, MaxVolume - neighbor.Volume));
                 if (transferAmount <= 0) return false;
                 

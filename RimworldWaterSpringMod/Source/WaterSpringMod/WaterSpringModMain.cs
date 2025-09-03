@@ -166,6 +166,18 @@ namespace WaterSpringMod
                         "Process spring tiles more aggressively so produced water moves out quickly.");
                     listingStandard.CheckboxLabeled("Spring tiles never stabilize", ref settings.springNeverStabilize,
                         "Spring source tiles are never removed from active processing based on stability.");
+
+                    // Reactivation wave controls
+                    listingStandard.Gap(10f);
+                    listingStandard.Label("<color=yellow>Reactivation Wave</color>");
+                    listingStandard.Label($"Radius: {settings.reactivationRadius} tiles",
+                        tooltip: "When a cell changes or a wall is removed, wake tiles within this radius.");
+                    settings.reactivationRadius = (int)listingStandard.Slider(settings.reactivationRadius, 1, 32);
+                    listingStandard.Label($"Immediate Transfers Cap: {settings.reactivationMaxTiles} tiles",
+                        tooltip: "Upper bound of tiles allowed to perform 1 immediate transfer on wake.");
+                    settings.reactivationMaxTiles = (int)listingStandard.Slider(settings.reactivationMaxTiles, 0, 512);
+                    listingStandard.CheckboxLabeled("Attempt one immediate transfer on wake", ref settings.reactivationImmediateTransfers,
+                        "Helps restart flow quickly after openings.");
                     break;
                 
                 case 2: // Strategy 3: Chunk-based Processing

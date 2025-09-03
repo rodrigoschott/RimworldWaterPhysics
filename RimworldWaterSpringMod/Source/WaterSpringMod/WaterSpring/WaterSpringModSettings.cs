@@ -53,6 +53,11 @@ namespace WaterSpringMod
     public bool springPrioritizeTiles = true; // Default: process spring tiles every tick
     public bool springNeverStabilize = true; // Default: spring tiles never stabilize
 
+    // Reactivation wave settings
+    public int reactivationRadius = 8; // Default: wake tiles within 8 cells
+    public int reactivationMaxTiles = 128; // Default: process up to 128 tiles immediately
+    public bool reactivationImmediateTransfers = true; // Default: attempt a single immediate transfer on wake
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -97,6 +102,11 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref springBacklogInjectInterval, "springBacklogInjectInterval", 30);
             Scribe_Values.Look(ref springPrioritizeTiles, "springPrioritizeTiles", true);
             Scribe_Values.Look(ref springNeverStabilize, "springNeverStabilize", true);
+            
+            // Save/load reactivation settings
+            Scribe_Values.Look(ref reactivationRadius, "reactivationRadius", 8);
+            Scribe_Values.Look(ref reactivationMaxTiles, "reactivationMaxTiles", 128);
+            Scribe_Values.Look(ref reactivationImmediateTransfers, "reactivationImmediateTransfers", true);
             // Backward compatibility: accept legacy keys silently (tiered/multi-phase removed)
         }
     }

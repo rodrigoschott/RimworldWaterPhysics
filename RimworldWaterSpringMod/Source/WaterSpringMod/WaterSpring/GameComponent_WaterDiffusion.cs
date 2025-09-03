@@ -27,6 +27,8 @@ namespace WaterSpringMod.WaterSpring
     private int activeChunkCount = 0;
     private int tilesProcessedLastTick = 0;
     private int activeWaterTileCount = 0;
+    // Reentrancy guard for ReactivateInRadius
+    private bool reactivatingNow = false;
         
     // Global tick/frequency trackers
     private int tickCounter = 0;
@@ -253,11 +255,52 @@ namespace WaterSpringMod.WaterSpring
                     FlowingWater neighborWater = map.thingGrid.ThingAt<FlowingWater>(neighborPos);
                     if (neighborWater != null)
                     {
-                        // Only reactivate if neighbor was explicitly deregistered AND has room and real potential to change
-                        // Avoid waking long-term stable water without cause
-                        if (neighborWater.IsExplicitlyDeregistered && !neighborWater.IsStable())
+                        // Only reactivate if deregistered and either:
+                        // - neighbor has Volume > 1 and at least one valid target (empty cell or lower-volume neighbor), or
+                        // - the changed cell is now a valid target for neighbor (lower volume than neighbor or empty)
+                        if (neighborWater.IsExplicitlyDeregistered)
                         {
-                            neighborWater.Reactivate();
+                            bool shouldReactivate = false;
+                            // Check if the changed cell is a valid recipient from neighbor
+                            FlowingWater changed = map.thingGrid.ThingAt<FlowingWater>(position);
+                            int minDiff = Settings.minVolumeDifferenceForTransfer;
+                            if (changed == null)
+                            {
+                                // Empty means neighbor could expand
+                                shouldReactivate = neighborWater.Volume >= 2;
+                            }
+                            else
+                            {
+                                // Neighbor could transfer to changed if has sufficient difference and changed not maxed
+                                if (changed.Volume < FlowingWater.MaxVolume && (neighborWater.Volume - changed.Volume) >= minDiff)
+                                {
+                                    shouldReactivate = true;
+                                }
+                            }
+                            
+                            // Also scan neighbor's other adjacent cells quickly for any potential movement
+                            if (!shouldReactivate && neighborWater.Volume > 1)
+                            {
+                                foreach (IntVec3 off2 in GenAdj.CardinalDirections)
+                                {
+                                    IntVec3 adj2 = neighborPos + off2;
+                                    if (!adj2.InBounds(map) || !adj2.Walkable(map)) continue;
+                                    FlowingWater w2 = map.thingGrid.ThingAt<FlowingWater>(adj2);
+                                    if (w2 == null)
+                                    {
+                                        if (neighborWater.Volume >= 2) { shouldReactivate = true; break; }
+                                    }
+                                    else if (w2.Volume < FlowingWater.MaxVolume && (neighborWater.Volume - w2.Volume) >= minDiff)
+                                    {
+                                        shouldReactivate = true; break;
+                                    }
+                                }
+                            }
+                            
+                            if (shouldReactivate)
+                            {
+                                neighborWater.Reactivate();
+                            }
                         }
                     }
                     
@@ -358,6 +401,122 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogDebug($"Water at {adjacentPos} reactivated due to terrain change at {position}");
                 }
             }
+
+            // Propagate a bounded reactivation wave backwards from the changed position
+            // to ensure the path toward the source wakes up.
+            int maxWaveSteps = 32; // safety bound
+            var frontier = new Queue<IntVec3>();
+            var visited = new HashSet<IntVec3>();
+            frontier.Enqueue(position);
+            visited.Add(position);
+            int steps = 0;
+            while (frontier.Count > 0 && steps < maxWaveSteps)
+            {
+                int breadth = frontier.Count;
+                for (int i = 0; i < breadth; i++)
+                {
+                    var p = frontier.Dequeue();
+                    foreach (var d in GenAdj.CardinalDirections)
+                    {
+                        var np = p + d;
+                        if (!np.InBounds(map) || visited.Contains(np) || !np.Walkable(map)) continue;
+                        visited.Add(np);
+                        var w = map.thingGrid.ThingAt<FlowingWater>(np);
+                        if (w == null) continue;
+                        // Only wake tiles that were explicitly deregistered and have any potential flow
+                        if (w.IsExplicitlyDeregistered)
+                        {
+                            // If any adjacent cell is empty or has lower volume by minDiff, reactivate
+                            bool canFlow = false;
+                            int md = Settings.minVolumeDifferenceForTransfer;
+                            foreach (var d2 in GenAdj.CardinalDirections)
+                            {
+                                var ap = np + d2;
+                                if (!ap.InBounds(map) || !ap.Walkable(map)) continue;
+                                var aw = map.thingGrid.ThingAt<FlowingWater>(ap);
+                                if (aw == null) { if (w.Volume >= 2) { canFlow = true; break; } }
+                                else if (aw.Volume < FlowingWater.MaxVolume && (w.Volume - aw.Volume) >= md) { canFlow = true; break; }
+                            }
+                            if (canFlow)
+                            {
+                                w.Reactivate();
+                                RegisterActiveTile(map, np);
+                            }
+                        }
+                        frontier.Enqueue(np);
+                    }
+                }
+                steps++;
+            }
+
+            // Also trigger a radius-based reactivation around the change
+            ReactivateInRadius(map, position);
+        }
+
+        // Reactivate tiles in a radius and optionally perform one immediate transfer
+        public void ReactivateInRadius(Map map, IntVec3 center)
+        {
+            if (map == null || !Settings.useActiveTileSystem) return;
+            // Reentrancy guard to avoid nested waves in the same tick
+            if (reactivatingNow) return;
+            reactivatingNow = true;
+            int radius = Mathf.Max(1, Settings.reactivationRadius);
+            int maxTiles = Mathf.Max(1, Settings.reactivationMaxTiles);
+            bool doImmediate = Settings.reactivationImmediateTransfers;
+
+            int processed = 0;
+            foreach (var pos in GenRadial.RadialCellsAround(center, radius, true))
+            {
+                if (!pos.InBounds(map) || !pos.Walkable(map)) continue;
+                var w = map.thingGrid.ThingAt<FlowingWater>(pos);
+                if (w == null) continue;
+
+                // Wake tiles that were stable
+                if (w.IsExplicitlyDeregistered)
+                {
+                    w.Reactivate();
+                }
+
+                // Ensure registered for processing
+                RegisterActiveTile(map, pos);
+
+                // Optionally attempt one immediate transfer to kickstart flow
+                if (doImmediate && processed < maxTiles && w.Volume > 1)
+                {
+                    // Try to move toward any valid neighbor
+                    foreach (var d in GenAdj.CardinalDirections)
+                    {
+                        var np = pos + d;
+                        if (!np.InBounds(map) || !np.Walkable(map)) continue;
+                        var nw = map.thingGrid.ThingAt<FlowingWater>(np);
+                        if (nw == null)
+                        {
+                            if (w.Volume >= 2)
+                            {
+                                // Create and move 1 unit
+                                ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
+                                if (waterDef != null)
+                                {
+                                    Thing newWater = ThingMaker.MakeThing(waterDef);
+                                    if (newWater is FlowingWater tw)
+                                    {
+                                        tw.Volume = 0;
+                                        GenSpawn.Spawn(newWater, np, map);
+                                        if (w.TransferVolume(tw)) { processed++; break; }
+                                    }
+                                }
+                            }
+                        }
+                        else if (nw.Volume < FlowingWater.MaxVolume && (w.Volume - nw.Volume) >= Settings.minVolumeDifferenceForTransfer)
+                        {
+                            if (w.TransferVolume(nw)) { processed++; break; }
+                        }
+                    }
+                }
+
+                if (processed >= maxTiles) break;
+            }
+            reactivatingNow = false;
         }
 
     // Diffusion method switching removed; Normal method is always used
