@@ -1,6 +1,6 @@
 <div align="center">
 
-# RimWorld — Water Physics (Water Spring Mod)
+# RimWorld — Water Physics (Water Spring Mod) ***WIP***
 
 Natural water flow in RimWorld with a performant, moddable diffusion system, a buildable Water Spring, and an always-on debug overlay.
 
