@@ -35,6 +35,9 @@ namespace WaterSpringMod
         public bool useAdaptiveTPS = false; // Default: disabled - automatically adjusts processing based on game TPS
         public float minTPS = 15.0f; // Default: Minimum target TPS before throttling kicks in
 
+    // Terrain sync: mirror terrain to water bands (1-4 shallow, 5-7 deep)
+    public bool syncTerrainToWaterVolume = true; // Default: enabled
+
     // Local diffusion timing (normal path) – replaces hardcoded 30..60
     public int localCheckIntervalMin = 30; // Default min ticks between attempts
     public int localCheckIntervalMax = 60; // Default max ticks between attempts
@@ -83,6 +86,9 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref globalUpdateFrequency, "globalUpdateFrequency", 1);
             Scribe_Values.Look(ref useAdaptiveTPS, "useAdaptiveTPS", false);
             Scribe_Values.Look(ref minTPS, "minTPS", 15.0f);
+
+            // Save/load terrain sync setting
+            Scribe_Values.Look(ref syncTerrainToWaterVolume, "syncTerrainToWaterVolume", true);
 
             // Save/load local diffusion timing
             Scribe_Values.Look(ref localCheckIntervalMin, "localCheckIntervalMin", 30);

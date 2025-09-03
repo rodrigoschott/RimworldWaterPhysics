@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {}
+    "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {}
   },
   "projects": {
-    "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {
+    "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+        "projectUniqueName": "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
         "projectName": "WaterSpringMod",
-        "projectPath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+        "projectPath": "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
         "packagesPath": "C:\\Users\\rodri\\.nuget\\packages\\",
-        "outputPath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\obj\\",
+        "outputPath": "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\Programas\\Microsoft\\Shared\\NuGetPackages"

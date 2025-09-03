@@ -10,6 +10,9 @@ namespace WaterSpringMod.WaterSpring
         private int _volume = 1; // Internal volume storage
         public const int MaxVolume = 7; // Maximum volume for the tile
     public const int MaxStability = 10000; // Upper hard ceiling; actual cap is configurable via settings
+    // Terrain sync state
+    private TerrainDef originalTerrain; // cached original terrain to restore when volume goes to 0
+    private int lastAppliedBand = -1;   // -1 unknown, 0 none/original, 1 shallow, 2 deep
         
         // Stability tracking for the active tile system
         private int stabilityCounter = 0;
@@ -39,6 +42,11 @@ namespace WaterSpringMod.WaterSpring
                     
                     // Update graphics
                     UpdateGraphic();
+                    // Sync terrain to volume bands if enabled and spawned
+                    if (Spawned && Map != null)
+                    {
+                        TrySyncTerrainToVolume();
+                    }
                     if (Spawned && Map != null && !isExplicitlyDeregistered && !IsStable())
                     {
                         GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
@@ -54,6 +62,8 @@ namespace WaterSpringMod.WaterSpring
                     // Destroy this water if volume is zero
                     if (_volume <= 0 && Spawned && !Destroyed)
                     {
+                        // Before destroying, restore original terrain if needed
+                        TryRestoreOriginalTerrain();
                         this.Destroy();
                     }
                 }
@@ -212,6 +222,17 @@ namespace WaterSpringMod.WaterSpring
             
             // Force graphic update when spawned
             UpdateGraphic();
+
+            // Capture original terrain when first spawning
+            if (map != null)
+            {
+                if (originalTerrain == null)
+                {
+                    originalTerrain = map.terrainGrid.TerrainAt(Position);
+                }
+                // Apply terrain based on current volume if setting is enabled
+                TrySyncTerrainToVolume();
+            }
             
             // Set initial diffusion check time (use settings; bias slightly earlier for spawn)
             var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
@@ -278,6 +299,11 @@ namespace WaterSpringMod.WaterSpring
             if (lastDrawnVolume != Volume)
             {
                 UpdateGraphic();
+                // Also ensure terrain is in sync after volume change
+                if (Spawned && Map != null)
+                {
+                    TrySyncTerrainToVolume();
+                }
             }
             
             // Increment the tick counter for tiered processing
@@ -355,7 +381,7 @@ namespace WaterSpringMod.WaterSpring
                     IntVec3 adjacentCell = pos + neighbor;
                     
                     // Skip if not valid or not walkable
-                    if (!adjacentCell.InBounds(Map) || !adjacentCell.Walkable(Map))
+                    if (!adjacentCell.InBounds(Map) || !IsCellPassableForWater(adjacentCell))
                     {
                         if (debug)
                         {
@@ -547,6 +573,93 @@ namespace WaterSpringMod.WaterSpring
             {
                 Map.mapDrawer.MapMeshDirty(Position, MapMeshFlagDefOf.Things);
             }
+        }
+
+        // Hide the thing's visual when terrain is mirroring the water band
+    protected override void DrawAt(Vector3 drawLoc, bool flip = false)
+        {
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
+            if (s != null && s.syncTerrainToWaterVolume)
+            {
+                // Don't draw the FlowingWater thing; terrain represents it visually
+                return;
+            }
+            base.DrawAt(drawLoc, flip);
+        }
+
+        // Compute band from current volume: 0 none, 1 shallow (1-4), 2 deep (5-7)
+        private int ComputeBand()
+        {
+            if (Volume <= 0) return 0;
+            if (Volume <= 4) return 1;
+            return 2;
+        }
+
+        // Apply terrain to mirror volume band, if enabled
+        private void TrySyncTerrainToVolume()
+        {
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
+            if (s == null || !s.syncTerrainToWaterVolume || Map == null || !Spawned) return;
+
+            var grid = Map.terrainGrid;
+            if (grid == null) return;
+
+            // Capture original terrain once
+            if (originalTerrain == null)
+            {
+                originalTerrain = grid.TerrainAt(Position);
+            }
+
+            int band = ComputeBand();
+            if (band == lastAppliedBand) return; // no change needed
+
+            if (band == 0)
+            {
+                // Restore original
+                if (originalTerrain != null)
+                {
+                    grid.SetTerrain(Position, originalTerrain);
+                }
+            }
+            else if (band == 1)
+            {
+                // Shallow water
+                grid.SetTerrain(Position, TerrainDefOf.WaterShallow);
+            }
+            else // band == 2
+            {
+                grid.SetTerrain(Position, TerrainDefOf.WaterDeep);
+            }
+
+            lastAppliedBand = band;
+        }
+
+        private void TryRestoreOriginalTerrain()
+        {
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
+            if (s == null || Map == null) return;
+            if (!s.syncTerrainToWaterVolume) return;
+            if (originalTerrain != null)
+            {
+                Map.terrainGrid.SetTerrain(Position, originalTerrain);
+            }
+            lastAppliedBand = 0;
+        }
+
+        // Determine if a cell is passable for water flow, treating water terrain as passable
+        private bool IsCellPassableForWater(IntVec3 cell)
+        {
+            if (!cell.Walkable(Map))
+            {
+                // If not walkable due to water terrain, allow; otherwise, block
+                TerrainDef t = Map.terrainGrid.TerrainAt(cell);
+                if (t != null && (t == TerrainDefOf.WaterShallow || t == TerrainDefOf.WaterDeep))
+                {
+                    return true;
+                }
+                return false;
+            }
+            return true;
         }
 
         public void AddVolume(int amount)

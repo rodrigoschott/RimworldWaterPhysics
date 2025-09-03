@@ -287,7 +287,7 @@ namespace WaterSpringMod.WaterSpring
                 IntVec3 neighborPos = position + offset;
                 
                 // Only activate if in bounds and walkable
-                if (neighborPos.InBounds(map) && neighborPos.Walkable(map))
+                if (neighborPos.InBounds(map) && IsCellPassableForWater(map, neighborPos))
                 {
                     // Check if there's a water tile at this position
                     FlowingWater neighborWater = map.thingGrid.ThingAt<FlowingWater>(neighborPos);
@@ -322,7 +322,7 @@ namespace WaterSpringMod.WaterSpring
                                 foreach (IntVec3 off2 in GenAdj.CardinalDirections)
                                 {
                                     IntVec3 adj2 = neighborPos + off2;
-                                    if (!adj2.InBounds(map) || !adj2.Walkable(map)) continue;
+                                    if (!adj2.InBounds(map) || !IsCellPassableForWater(map, adj2)) continue;
                                     FlowingWater w2 = map.thingGrid.ThingAt<FlowingWater>(adj2);
                                     if (w2 == null)
                                     {
@@ -460,7 +460,7 @@ namespace WaterSpringMod.WaterSpring
                     foreach (var d in GenAdj.CardinalDirections)
                     {
                         var np = p + d;
-                        if (!np.InBounds(map) || bfsVisited.Contains(np) || !np.Walkable(map)) continue;
+                        if (!np.InBounds(map) || bfsVisited.Contains(np) || !IsCellPassableForWater(map, np)) continue;
                         bfsVisited.Add(np);
                         var w = map.thingGrid.ThingAt<FlowingWater>(np);
                         if (w == null) continue;
@@ -473,7 +473,7 @@ namespace WaterSpringMod.WaterSpring
                             foreach (var d2 in GenAdj.CardinalDirections)
                             {
                                 var ap = np + d2;
-                                if (!ap.InBounds(map) || !ap.Walkable(map)) continue;
+                                if (!ap.InBounds(map) || !IsCellPassableForWater(map, ap)) continue;
                                 var aw = map.thingGrid.ThingAt<FlowingWater>(ap);
                                 if (aw == null) { if (w.Volume >= 2) { canFlow = true; break; } }
                                 else if (aw.Volume < FlowingWater.MaxVolume && (w.Volume - aw.Volume) >= md) { canFlow = true; break; }
@@ -508,7 +508,7 @@ namespace WaterSpringMod.WaterSpring
             int processed = 0;
             foreach (var pos in GenRadial.RadialCellsAround(center, radius, true))
             {
-                if (!pos.InBounds(map) || !pos.Walkable(map)) continue;
+                if (!pos.InBounds(map) || !IsCellPassableForWater(map, pos)) continue;
                 var w = map.thingGrid.ThingAt<FlowingWater>(pos);
                 if (w == null) continue;
 
@@ -528,7 +528,7 @@ namespace WaterSpringMod.WaterSpring
                     foreach (var d in GenAdj.CardinalDirections)
                     {
                         var np = pos + d;
-                        if (!np.InBounds(map) || !np.Walkable(map)) continue;
+                        if (!np.InBounds(map) || !IsCellPassableForWater(map, np)) continue;
                         var nw = map.thingGrid.ThingAt<FlowingWater>(np);
                         if (nw == null)
                         {
@@ -558,6 +558,15 @@ namespace WaterSpringMod.WaterSpring
                 if (processed >= maxTiles) break;
             }
             reactivatingNow = false;
+        }
+
+        // Treat water terrain as passable for water flow
+        private bool IsCellPassableForWater(Map map, IntVec3 cell)
+        {
+            if (cell.Walkable(map)) return true;
+            var t = map.terrainGrid?.TerrainAt(cell);
+            if (t != null && (t == TerrainDefOf.WaterShallow || t == TerrainDefOf.WaterDeep)) return true;
+            return false;
         }
 
     // Diffusion method switching removed; Normal method is always used

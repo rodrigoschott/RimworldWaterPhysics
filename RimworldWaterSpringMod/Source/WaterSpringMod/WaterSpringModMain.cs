@@ -133,6 +133,11 @@ namespace WaterSpringMod
                     LabelCached(listingStandard, GC_GeneralHeader);
                     listingStandard.Gap();
                     
+                    // Terrain sync toggle
+                    listingStandard.CheckboxLabeled("Sync terrain to water volume (shallow 1-4, deep 5-7)", ref settings.syncTerrainToWaterVolume,
+                        "When enabled, terrain under water tiles will be set to Shallow water for volumes 1–4 and Deep water for 5–7. When volume returns to 0, original terrain is restored.");
+                    listingStandard.Gap();
+
                     // Spring spawn interval
                     _tmpContent.text = "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval);
                     _tmpContent.tooltip = "Interval between spring spawns (ticks). Lower = faster water production; higher = slower.";
