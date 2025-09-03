@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using UnityEngine;
 
 namespace WaterSpringMod.WaterSpring
 {
     public class Building_WaterSpring : Building
     {
         private int ticksUntilNextWaterSpawn = 60; // Start with a short timer
+    private int backlog = 0; // units of water produced but not yet injected
+    private int ticksUntilBacklogInject = 0;
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
@@ -88,6 +91,18 @@ namespace WaterSpringMod.WaterSpring
                 ticksUntilNextWaterSpawn = newInterval;
                 WaterSpringLogger.LogDebug($"Building_WaterSpring.Tick: Next spawn scheduled in {newInterval} ticks");
             }
+
+            // Try to inject backlog periodically
+            var s2 = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
+            if (s2 != null && s2.springUseBacklog && backlog > 0)
+            {
+                if (ticksUntilBacklogInject > 0) ticksUntilBacklogInject--;
+                if (ticksUntilBacklogInject <= 0)
+                {
+                    TryInjectBacklog();
+                    ticksUntilBacklogInject = Math.Max(1, s2.springBacklogInjectInterval);
+                }
+            }
         }
 
         private void SpawnFlowingWater()
@@ -147,7 +162,24 @@ namespace WaterSpringMod.WaterSpring
                 // Add volume to existing water
                 int oldVolume = existingWater.Volume;
                 WaterSpringLogger.LogDebug($"SpawnFlowingWater: Adding volume to existing water. Current volume: {oldVolume}");
-                existingWater.AddVolume(1);
+                var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
+                if (s != null && s.springUseBacklog && existingWater.Volume >= FlowingWater.MaxVolume)
+                {
+                    // Store backlog instead of losing water
+                    if (backlog < Math.Max(0, s.springBacklogCap))
+                    {
+                        backlog++;
+                        WaterSpringLogger.LogDebug($"SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now {backlog}/{s.springBacklogCap}");
+                    }
+                    else
+                    {
+                        WaterSpringLogger.LogDebug($"SpawnFlowingWater: Backlog full ({backlog}), discarding produced water");
+                    }
+                }
+                else
+                {
+                    existingWater.AddVolume(1);
+                }
                 WaterSpringLogger.LogDebug($"SpawnFlowingWater: Added volume to existing water. Old volume: {oldVolume}, New volume: {existingWater.Volume}");
             }
             else
@@ -183,6 +215,12 @@ namespace WaterSpringMod.WaterSpring
                     {
                         WaterSpringLogger.LogDebug($"SpawnFlowingWater: Setting initial volume to 1");
                         typedWater.Volume = 1;
+                        // mark as spring source and prevent stabilization if setting enabled
+                        var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
+                        if (s != null)
+                        {
+                            typedWater.MarkAsSpringSource(s.springNeverStabilize);
+                        }
                         
                         try
                         {
@@ -219,10 +257,50 @@ namespace WaterSpringMod.WaterSpring
             WaterSpringLogger.LogDebug($"SpawnFlowingWater: Completed water spawn process");
         }
 
+        private void TryInjectBacklog()
+        {
+            if (Map == null || backlog <= 0) return;
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
+            if (s == null || !s.springUseBacklog) return;
+
+            // Try to find capacity to inject into spring tile or an adjacent water tile
+            FlowingWater atSpring = this.Position.GetThingList(Map)?.FirstOrDefault(t => t is FlowingWater) as FlowingWater;
+            if (atSpring != null && atSpring.Volume < FlowingWater.MaxVolume)
+            {
+                atSpring.AddVolume(1);
+                backlog--;
+                WaterSpringLogger.LogDebug($"TryInjectBacklog: Injected 1 into spring tile. Backlog now {backlog}");
+                return;
+            }
+
+            // Look for the lowest-volume adjacent water to inject into
+            FlowingWater best = null;
+            int bestVol = int.MaxValue;
+            IntVec3 bestPos = IntVec3.Invalid;
+            foreach (var dir in GenAdj.CardinalDirections)
+            {
+                IntVec3 p = Position + dir;
+                if (!p.InBounds(Map) || !p.Walkable(Map)) continue;
+                var w = p.GetThingList(Map)?.FirstOrDefault(t => t is FlowingWater) as FlowingWater;
+                if (w != null && w.Volume < FlowingWater.MaxVolume && w.Volume < bestVol)
+                {
+                    best = w; bestVol = w.Volume; bestPos = p;
+                }
+            }
+            if (best != null)
+            {
+                best.AddVolume(1);
+                backlog--;
+                WaterSpringLogger.LogDebug($"TryInjectBacklog: Injected 1 into neighbor {bestPos}. Backlog now {backlog}");
+            }
+        }
+
         public override void ExposeData()
         {
             base.ExposeData();
             Scribe_Values.Look(ref ticksUntilNextWaterSpawn, "ticksUntilNextWaterSpawn", 60);
+            Scribe_Values.Look(ref backlog, "springBacklog", 0);
+            Scribe_Values.Look(ref ticksUntilBacklogInject, "ticksUntilBacklogInject", 0);
             WaterSpringLogger.LogDebug($"Building_WaterSpring.ExposeData: Spring data saved/loaded, ticksUntilNextWaterSpawn: {ticksUntilNextWaterSpawn}");
         }
     }

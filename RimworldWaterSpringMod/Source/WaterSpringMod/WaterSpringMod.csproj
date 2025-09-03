@@ -27,10 +27,12 @@
 
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4566" />
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="WaterSpringMod.cs" />
+  <Compile Remove="WaterSpring\\WaterTransferManager.cs" />
   </ItemGroup>
 
 </Project>

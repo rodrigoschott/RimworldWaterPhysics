@@ -5,3 +5,5 @@ F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug
 F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug\WaterSpringMod.csproj.CoreCompileInputs.cache
 F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug\WaterSpringMod.dll
 F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug\WaterSpringMod.pdb
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug\WaterSpringMod.sourcelink.json
+F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\obj\Debug\WaterSpr.609FF875.Up2Date
