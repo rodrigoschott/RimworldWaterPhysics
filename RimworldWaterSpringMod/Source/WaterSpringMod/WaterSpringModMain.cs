@@ -26,7 +26,8 @@ namespace WaterSpringMod
         private static readonly GUIContent GC_S1_Reactivation = new GUIContent("<color=yellow>Reactivation Wave</color>");
         private static readonly GUIContent GC_S3_Header = new GUIContent("<color=yellow>Strategy 3: Chunk-based Processing</color>");
         private static readonly GUIContent GC_S5_Header = new GUIContent("<color=yellow>Strategy 5: Update Frequency Optimization</color>");
-        private static readonly GUIContent GC_Debug_Header = new GUIContent("<color=yellow>Debug & Visualization</color>");
+    private static readonly GUIContent GC_Debug_Header = new GUIContent("<color=yellow>Debug & Visualization</color>");
+    private static readonly GUIContent GC_Evap_Header = new GUIContent("<color=yellow>Evaporation</color>");
         private static readonly GUIContent GC_Dev_Header = new GUIContent("<color=orange>DEVELOPER TOOLS</color>");
         // Reusable dynamic GUIContent and string builder to avoid per-frame allocations
         private readonly GUIContent _tmpContent = new GUIContent();
@@ -101,7 +102,8 @@ namespace WaterSpringMod
             tabs.Add(new TabRecord("Strategy 1", () => selectedTab = 1, selectedTab == 1));
             tabs.Add(new TabRecord("Strategy 3", () => selectedTab = 2, selectedTab == 2));
             tabs.Add(new TabRecord("Strategy 5", () => selectedTab = 3, selectedTab == 3));
-            tabs.Add(new TabRecord("Debug", () => selectedTab = 4, selectedTab == 4));
+            tabs.Add(new TabRecord("Evaporation", () => selectedTab = 4, selectedTab == 4));
+            tabs.Add(new TabRecord("Debug", () => selectedTab = 5, selectedTab == 5));
             
             TabDrawer.DrawTabs(tabRect, tabs);
             
@@ -124,7 +126,7 @@ namespace WaterSpringMod
             listingStandard.Begin(viewRect);
             
             // Clamp selectedTab to available range in case of legacy saved index
-            if (selectedTab < 0 || selectedTab > 4) selectedTab = 0;
+            if (selectedTab < 0 || selectedTab > 5) selectedTab = 0;
 
             switch (selectedTab)
             {
@@ -319,7 +321,45 @@ namespace WaterSpringMod
                     }
                     break;
                 
-                case 4: // Debug & Developer Tools
+                case 4: // Evaporation
+                    LabelCached(listingStandard, GC_Evap_Header);
+                    listingStandard.Gap();
+
+                    // Enable evaporation
+                    listingStandard.CheckboxLabeled("Enable Evaporation", ref settings.evaporationEnabled,
+                        "When enabled, stable, unroofed water tiles at or below the volume threshold may evaporate by 1 at periodic checks.");
+
+                    // Interval
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Evaporation Interval: ", settings.evaporationIntervalTicks, " ticks",
+                        tooltip: "How often each water tile checks for evaporation.");
+                    settings.evaporationIntervalTicks = (int)listingStandard.Slider(settings.evaporationIntervalTicks, 60, 6000);
+
+                    // Threshold
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Max Volume Threshold: ≤ ", settings.evaporationMaxVolumeThreshold, null,
+                        tooltip: "Evaporation only applies when tile volume is at or below this value.");
+                    settings.evaporationMaxVolumeThreshold = (int)listingStandard.Slider(settings.evaporationMaxVolumeThreshold, 0, 7);
+
+                    // Chance
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Evaporation Chance: ", settings.evaporationChancePercent, "%",
+                        tooltip: "Percent chance that a qualified tile evaporates at each check.");
+                    settings.evaporationChancePercent = (int)listingStandard.Slider(settings.evaporationChancePercent, 0, 100);
+
+                    // Roof behavior
+                    listingStandard.Gap(10f);
+                    listingStandard.CheckboxLabeled("Only allow evaporation when unroofed", ref settings.evaporationOnlyUnroofed,
+                        "When checked, roofed water tiles never evaporate. When unchecked, roofed tiles can evaporate using a separate chance.");
+                    if (!settings.evaporationOnlyUnroofed)
+                    {
+                        LabelDynamicInt(listingStandard, "Evaporation Chance (Roofed): ", settings.evaporationChancePercentRoofed, "%",
+                            tooltip: "Percent chance for roofed tiles when allowed.");
+                        settings.evaporationChancePercentRoofed = (int)listingStandard.Slider(settings.evaporationChancePercentRoofed, 0, 100);
+                    }
+                    break;
+
+                case 5: // Debug & Developer Tools
                     // Debug header
                     LabelCached(listingStandard, GC_Debug_Header);
                     listingStandard.Gap();

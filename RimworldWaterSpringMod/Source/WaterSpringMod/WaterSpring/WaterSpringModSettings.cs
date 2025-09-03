@@ -38,6 +38,14 @@ namespace WaterSpringMod
     // Terrain sync: mirror terrain to water bands (1-4 shallow, 5-7 deep)
     public bool syncTerrainToWaterVolume = true; // Default: enabled
 
+    // Evaporation settings
+    public bool evaporationEnabled = true; // Default: enabled
+    public int evaporationIntervalTicks = 300; // X: every X ticks
+    public int evaporationMaxVolumeThreshold = 1; // Y: only if volume <= Y
+    public int evaporationChancePercent = 10; // Z: unroofed chance percent per check
+    public bool evaporationOnlyUnroofed = true; // If true, roofed tiles never evaporate
+    public int evaporationChancePercentRoofed = 10; // Separate chance for roofed tiles when allowed
+
     // Local diffusion timing (normal path) – replaces hardcoded 30..60
     public int localCheckIntervalMin = 30; // Default min ticks between attempts
     public int localCheckIntervalMax = 60; // Default max ticks between attempts
@@ -89,6 +97,14 @@ namespace WaterSpringMod
 
             // Save/load terrain sync setting
             Scribe_Values.Look(ref syncTerrainToWaterVolume, "syncTerrainToWaterVolume", true);
+
+            // Save/load evaporation settings
+            Scribe_Values.Look(ref evaporationEnabled, "evaporationEnabled", true);
+            Scribe_Values.Look(ref evaporationIntervalTicks, "evaporationIntervalTicks", 300);
+            Scribe_Values.Look(ref evaporationMaxVolumeThreshold, "evaporationMaxVolumeThreshold", 1);
+            Scribe_Values.Look(ref evaporationChancePercent, "evaporationChancePercent", 10);
+            Scribe_Values.Look(ref evaporationOnlyUnroofed, "evaporationOnlyUnroofed", true);
+            Scribe_Values.Look(ref evaporationChancePercentRoofed, "evaporationChancePercentRoofed", 10);
 
             // Save/load local diffusion timing
             Scribe_Values.Look(ref localCheckIntervalMin, "localCheckIntervalMin", 30);
@@ -150,6 +166,12 @@ namespace WaterSpringMod
             // Reactivation wave
             reactivationRadius = Mathf.Clamp(reactivationRadius, 1, 64);
             reactivationMaxTiles = Mathf.Clamp(reactivationMaxTiles, 1, 10000);
+
+            // Evaporation
+            evaporationIntervalTicks = Mathf.Clamp(evaporationIntervalTicks, 60, 6000);
+            evaporationMaxVolumeThreshold = Mathf.Clamp(evaporationMaxVolumeThreshold, 0, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
+            evaporationChancePercent = Mathf.Clamp(evaporationChancePercent, 0, 100);
+            evaporationChancePercentRoofed = Mathf.Clamp(evaporationChancePercentRoofed, 0, 100);
         }
     }
 }

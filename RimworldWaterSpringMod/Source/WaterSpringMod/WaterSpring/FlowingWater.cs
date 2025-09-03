@@ -194,6 +194,8 @@ namespace WaterSpringMod.WaterSpring
         private int lastDrawnVolume = -1;
         public int ticksUntilNextCheck = 0; // Timer for local diffusion checks - public for access by GameComponent_WaterDiffusion
         private int tickCounter = 0; // For tracking ticks for tiered processing
+    // Evaporation scheduling
+    private int nextEvapCheckTick = -1;
 
     // Anti-backflow tracking
     private IntVec3 lastInboundFrom = IntVec3.Invalid;
@@ -214,6 +216,7 @@ namespace WaterSpringMod.WaterSpring
             Scribe_Values.Look(ref lastInboundFrom, "lastInboundFrom", IntVec3.Invalid);
             Scribe_Values.Look(ref backflowCooldownRemaining, "backflowCooldownRemaining", 0);
             Scribe_Values.Look(ref isSpringSourceTile, "isSpringSourceTile", false);
+            Scribe_Values.Look(ref nextEvapCheckTick, "nextEvapCheckTick", -1);
         }
         
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -239,6 +242,14 @@ namespace WaterSpringMod.WaterSpring
             int minI0 = Mathf.Max(1, settings.localCheckIntervalMin / 2);
             int maxI0 = Mathf.Max(minI0, settings.localCheckIntervalMax / 2 + 1);
             ticksUntilNextCheck = Rand.Range(minI0, maxI0);
+
+            // Initialize evaporation schedule with a random phase to avoid spikes
+            if (settings != null && settings.evaporationEnabled)
+            {
+                int now = Find.TickManager.TicksGame;
+                int phase = Rand.Range(0, Mathf.Max(1, settings.evaporationIntervalTicks));
+                nextEvapCheckTick = now + settings.evaporationIntervalTicks + phase;
+            }
             
             // Register with the active tile system
             GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
@@ -344,6 +355,56 @@ namespace WaterSpringMod.WaterSpring
                     {
                         GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
                         diffusionManager?.RegisterActiveTile(Map, Position);
+                    }
+                }
+            }
+
+            // Evaporation check (very cheap per tick)
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
+            if (s != null && s.evaporationEnabled && Map != null && Spawned)
+            {
+                if (nextEvapCheckTick < 0)
+                {
+                    // Late init if needed
+                    int now = Find.TickManager.TicksGame;
+                    int phase = Rand.Range(0, Mathf.Max(1, s.evaporationIntervalTicks));
+                    nextEvapCheckTick = now + s.evaporationIntervalTicks + phase;
+                }
+                int tickNow = Find.TickManager.TicksGame;
+                if (tickNow >= nextEvapCheckTick)
+                {
+                    // Schedule next
+                    nextEvapCheckTick = tickNow + Mathf.Max(1, s.evaporationIntervalTicks);
+                    // Only stable tiles evaporate
+                    if (IsStable())
+                    {
+                        bool roofed = Map.roofGrid.Roofed(Position);
+                        if (!(s.evaporationOnlyUnroofed && roofed))
+                        {
+                            if (Volume <= Mathf.Clamp(s.evaporationMaxVolumeThreshold, 0, MaxVolume))
+                            {
+                                int baseChance = Mathf.Clamp(s.evaporationChancePercent, 0, 100);
+                                int chance = (!roofed) ? baseChance : Mathf.Clamp(s.evaporationChancePercentRoofed, 0, 100);
+                                if (chance > 0 && Rand.RangeInclusive(1, 100) <= chance)
+                                {
+                                    // Evaporate one unit
+                                    if (Volume > 0)
+                                    {
+                                        Volume = Volume - 1;
+                                        // Reactivate tile to resume processing only if still present
+                                        if (!Destroyed && Volume > 0)
+                                        {
+                                            Reactivate();
+                                        }
+                                        // Optional: visual flash in debug
+                                        if (s.debugModeEnabled)
+                                        {
+                                            Map.debugDrawer.FlashCell(Position, 0.5f, "evap");
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -636,9 +697,7 @@ namespace WaterSpringMod.WaterSpring
 
         private void TryRestoreOriginalTerrain()
         {
-            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
-            if (s == null || Map == null) return;
-            if (!s.syncTerrainToWaterVolume) return;
+            if (Map == null) return;
             if (originalTerrain != null)
             {
                 Map.terrainGrid.SetTerrain(Position, originalTerrain);

@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build WaterSpringMod",
+			"type": "shell",
+			"command": "dotnet build",
+			"args": [
+				"-c",
+				"Debug"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$msbuild"
+			],
+			"group": "build"
+		}
+	]
+}
