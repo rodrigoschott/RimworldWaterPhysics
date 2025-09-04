@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ThingDef Name="MF_ElevatorBase" ParentName="BuildingBase" Abstract="True">
+		<defName>MF_ElevatorBase</defName>
+		<label>elevator</label>
+		<description>Placeholder.</description>
+		<useHitPoints>false</useHitPoints>
+		<rotatable>false</rotatable>
+		<terrainAffordanceNeeded>Heavy</terrainAffordanceNeeded>
+		<canOverlapZones>false</canOverlapZones>
+		<altitudeLayer>BuildingOnTop</altitudeLayer>
+		<drawerType>RealtimeOnly</drawerType>
+		<passability>PassThroughOnly</passability>
+		<holdsRoof>true</holdsRoof>
+		<fillPercent>0.75</fillPercent>
+		<preventSkyfallersLandingOn>true</preventSkyfallersLandingOn>
+		<designationCategory>MultiFloors</designationCategory>
+		<building>
+			<paintable>true</paintable>
+			<isTargetable>false</isTargetable>
+			<isInert>true</isInert>
+			<ai_chillDestination>false</ai_chillDestination>
+			<claimable>false</claimable>
+			<expandHomeArea>false</expandHomeArea>
+		</building>
+		<statBases>
+			<Flammability>0</Flammability>
+		</statBases>
+		<inspectorTabs>
+			<!-- we need a tab to prevent exception in ASF -->
+			<li>MultiFloors.ITab_PowerTransmission</li>
+		</inspectorTabs>
+		<comps>
+			<li>
+				<compClass>MultiFloors.CompGatherPawns</compClass>
+			</li>
+		</comps>
+	</ThingDef>
+</Defs>

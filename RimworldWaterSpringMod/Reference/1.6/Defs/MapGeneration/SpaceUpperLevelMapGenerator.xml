@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<MapGeneratorDef MayRequire="Ludeon.RimWorld.Odyssey">
+		<defName>MF_SpaceUpperLevel</defName>
+		<label>space</label>
+		<isUnderground>false</isUnderground>
+		<forceCaves>false</forceCaves>
+		<renderWorld>true</renderWorld>
+		<disableMapClippers>true</disableMapClippers>
+		<ignoreAreaRevealedLetter>true</ignoreAreaRevealedLetter>
+		<disableCallAid>true</disableCallAid>
+		<customMapComponents>
+			<li>MultiFloors.MF_UpperLevelMapComp</li>
+		</customMapComponents>
+		<pocketMapProperties>
+			<biome>Orbit</biome>
+			<temperature>-75</temperature>
+		</pocketMapProperties>
+		<genSteps>
+			<li>ElevationFertility</li>
+			<li>MF_SpaceUpperLevelTerrain</li>
+		</genSteps>
+	</MapGeneratorDef>
+	
+	<GenStepDef MayRequire="Ludeon.RimWorld.Odyssey">
+		<defName>MF_SpaceUpperLevelTerrain</defName>
+		<order>200</order>
+		<genStep Class="MultiFloors.Maps.GenStep_UpperLevelTerrain">
+			<terrain>MF_SpaceVoid</terrain>
+		</genStep>
+	</GenStepDef>
+	
+</Defs>

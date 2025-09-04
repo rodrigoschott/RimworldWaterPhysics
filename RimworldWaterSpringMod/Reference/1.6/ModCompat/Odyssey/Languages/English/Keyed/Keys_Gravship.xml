@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<MF_MustBeBuiltOnGroundGravEngineCell>Must be built on the same cell as grav engine.</MF_MustBeBuiltOnGroundGravEngineCell>
+	
+	<MF_DeleteDanglingUpperLevelsOnGravshipLaunch>[MultiFloors] Dangling upper levels with no entrance will be deleted. Deleting them will permanently remove things on those levels and all branches from them. Proceed?</MF_DeleteDanglingUpperLevelsOnGravshipLaunch>
+</LanguageData>

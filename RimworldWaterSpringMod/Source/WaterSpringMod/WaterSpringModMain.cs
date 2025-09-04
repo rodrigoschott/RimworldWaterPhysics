@@ -156,6 +156,8 @@ namespace WaterSpringMod
                         settings.debugModeEnabled = dbg;
                         WaterSpring.WaterSpringLogger.SetDebugEnabled(dbg);
                     }
+
+                    // Removed: MultiFloors integration settings
                     break;
                 
                 case 1: // Strategy 1: Active Tile Management
@@ -392,6 +394,53 @@ namespace WaterSpringMod
                                 Messages.Message("No map loaded", MessageTypeDefOf.RejectInput);
                             }
                         }
+
+                        if (listingStandard.ButtonText("Dev: Place WS_Hole at mouse cell"))
+                        {
+                            var map = Find.CurrentMap;
+                            if (map != null)
+                            {
+                                IntVec3 c = UI.MouseCell();
+                                if (c.InBounds(map))
+                                {
+                                    var ed = c.GetEdifice(map);
+                                    ed?.Destroy(DestroyMode.Vanish);
+                                    var def = DefDatabase<ThingDef>.GetNamedSilentFail("WS_Hole");
+                                    if (def != null)
+                                    {
+                                        GenSpawn.Spawn(ThingMaker.MakeThing(def), c, map);
+                                        Messages.Message($"Spawned WS_Hole at {c}", MessageTypeDefOf.NeutralEvent);
+                                        WaterSpring.WaterSpringLogger.LogDebug($"[Portal] Dev placed WS_Hole at {c} on map #{map.uniqueID}");
+                                    }
+                                    else
+                                    {
+                                        Messages.Message("WS_Hole def not found", MessageTypeDefOf.RejectInput);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (listingStandard.ButtonText("Dev: Log IsHoleAt + contents at mouse cell"))
+                        {
+                            var map = Find.CurrentMap;
+                            if (map != null)
+                            {
+                                IntVec3 c = UI.MouseCell();
+                                if (c.InBounds(map))
+                                {
+                                    bool isHole = WaterSpring.VerticalPortalBridge.IsHoleAt(map, c);
+                                    var ed = c.GetEdifice(map);
+                                    var list = map.thingGrid.ThingsListAtFast(c);
+                                    System.Text.StringBuilder sb = new System.Text.StringBuilder(64);
+                                    if (list != null)
+                                    {
+                                        foreach (var t in list) { if (sb.Length>0) sb.Append(", "); sb.Append(t?.def?.defName); }
+                                    }
+                                    WaterSpring.WaterSpringLogger.LogDebug($"[Portal] Dev probe at {c}: IsHoleAt={isHole}; edifice={ed?.def?.defName}; things=[{sb}]");
+                                    Messages.Message($"Dev probe logged for {c}", MessageTypeDefOf.NeutralEvent);
+                                }
+                            }
+                        }
                     }
                     break;
             }
@@ -457,6 +506,60 @@ namespace WaterSpringMod
         {
             base.GameComponentTick();
             // No diffusion logic - handled by individual FlowingWater tiles
+
+            // Dev hotkeys (global):
+            // - Shift+H: place WS_Hole at mouse cell
+            // - Shift+J: log IsHoleAt + contents at mouse cell
+            if (Prefs.DevMode && Current.ProgramState == ProgramState.Playing)
+            {
+                try
+                {
+                    var map = Find.CurrentMap;
+                    if (map != null)
+                    {
+                        bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                        if (shift && Input.GetKeyDown(KeyCode.H))
+                        {
+                            IntVec3 c = UI.MouseCell();
+                            if (c.InBounds(map))
+                            {
+                                var ed = c.GetEdifice(map);
+                                ed?.Destroy(DestroyMode.Vanish);
+                                var def = DefDatabase<ThingDef>.GetNamedSilentFail("WS_Hole");
+                                if (def != null)
+                                {
+                                    GenSpawn.Spawn(ThingMaker.MakeThing(def), c, map);
+                                    Messages.Message($"Spawned WS_Hole at {c}", MessageTypeDefOf.NeutralEvent);
+                                    WaterSpring.WaterSpringLogger.LogDebug($"[Portal] Hotkey placed WS_Hole at {c} on map #{map.uniqueID}");
+                                }
+                                else
+                                {
+                                    Messages.Message("WS_Hole def not found", MessageTypeDefOf.RejectInput);
+                                }
+                            }
+                        }
+
+                        if (shift && Input.GetKeyDown(KeyCode.J))
+                        {
+                            IntVec3 c = UI.MouseCell();
+                            if (c.InBounds(map))
+                            {
+                                bool isHole = WaterSpring.VerticalPortalBridge.IsHoleAt(map, c);
+                                var ed = c.GetEdifice(map);
+                                var list = map.thingGrid.ThingsListAtFast(c);
+                                System.Text.StringBuilder sb = new System.Text.StringBuilder(64);
+                                if (list != null)
+                                {
+                                    foreach (var t in list) { if (sb.Length>0) sb.Append(", "); sb.Append(t?.def?.defName); }
+                                }
+                                WaterSpring.WaterSpringLogger.LogDebug($"[Portal] Hotkey probe at {c}: IsHoleAt={isHole}; edifice={ed?.def?.defName}; things=[{sb}]");
+                                Messages.Message($"Probe logged for {c}", MessageTypeDefOf.NeutralEvent);
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
         }
         
         public override void ExposeData()

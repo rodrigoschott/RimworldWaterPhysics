@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<!-- transfer settings tab -->
+	<MF_StairTransferTabLabel>Transfer</MF_StairTransferTabLabel>
+	<MF_ExclusiveStairsStorageSettings>Exclusive</MF_ExclusiveStairsStorageSettings>
+	<MF_ExclusiveStairsStorageSettingsTooltip>When toggled on, it will automatically disallow all currently allowed things on the connected stairs to prevent hauling back and forth.</MF_ExclusiveStairsStorageSettingsTooltip>
+	<MF_StairToLoadListTabLabel>To transfer</MF_StairToLoadListTabLabel>
+	
+	<!-- power transmit tab -->
+	<MF_StairPowerTabLabel>Power</MF_StairPowerTabLabel>
+	<MF_StairNotConnectedToPowerNet>Not connected to any power net. Connect it with power conduit.</MF_StairNotConnectedToPowerNet>
+	<MF_NetOutputInPowerNetGroup>Net power output in connected nets: {0}W</MF_NetOutputInPowerNetGroup>
+	<MF_NetOutputInPowerNetGroupTooltip>A positive value means the power network is producing more electricity than it consumes. Any surplus is used to charge connected batteries in the net.\nA negative value means the opposite: the network is short on power and will draw energy from available batteries.</MF_NetOutputInPowerNetGroupTooltip>
+	<MF_ThroughputInPowerNetGroup>Throughput in connected nets: {0}W</MF_ThroughputInPowerNetGroup>
+	<MF_ThroughputInPowerNetGroupTooltip>Power transmitted around connected power nets.</MF_ThroughputInPowerNetGroupTooltip>
+	<MF_PowerTransmitted>Power transmitted to this node: {0}W</MF_PowerTransmitted>
+	<MF_PowerBreakdown>Power Breakdown:</MF_PowerBreakdown>
+	<MF_NetOutputInCurrentPowerNet>Net output in this net</MF_NetOutputInCurrentPowerNet>
+	
+	<!-- transfer policy tab -->
+	<MF_StairTransferPolicyTabLabel>Policy</MF_StairTransferPolicyTabLabel>
+	<MF_TransferPolicyTabAllowedDefs>Allowed</MF_TransferPolicyTabAllowedDefs>
+	<MF_TransferPolicyTabSearchDesc>Search def, click on them to add an entry in policy</MF_TransferPolicyTabSearchDesc>
+	<MF_TransferPolicyTabEntryDesc>Adjust current policy</MF_TransferPolicyTabEntryDesc>
+	<MF_TransferPolicyTabEntryTooltip>The stairs will periodically search for the allowed items in Transfer settings and automatically add them to the transfer list. You can prevent overloading or unnecessary transfers by setting a max amount here. If the resource counter on the target level shows that there are enough of an item, it won’t add that item to the transfer list anymore. Conversely, a negative setting will keep the appropriate number of items on current level and transfer the rest to the target level.</MF_TransferPolicyTabEntryTooltip>
+	<MF_TransferPolicyCountEverything>Count everything</MF_TransferPolicyCountEverything>
+	<MF_TransferPolicyCountEverythingTooltip>When toggle off, it only count items in the stockpile.</MF_TransferPolicyCountEverythingTooltip>
+	<MF_MaxCountToTransfer>Max allowed:</MF_MaxCountToTransfer>
+	
+	<!-- bill listener -->
+	<MF_ListenBillGiver>Link to other level</MF_ListenBillGiver>
+	<MF_ListenBillGiverTooltip>Pawns won’t automatically haul missing ingredients across levels. However, when toggled on, the workbench will automatically scan for missing ingredients on the linked level and add them to the haul queue. The performance impact depends on how many types are allowed in the bill filter, so try to keep it as minimal as possible. Turn it off if you have a dedicated stockpile on this level and it would do nothing.</MF_ListenBillGiverTooltip>
+	<MF_BillGiverLinkedMap>Link to level</MF_BillGiverLinkedMap>
+	<MF_BillGiverLinkedMapTooltip>Link to other level so pawns could haul missing ingredients from there.</MF_BillGiverLinkedMapTooltip>
+</LanguageData>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<MultiFloors>Multi-Floors</MultiFloors>
+	
+	<MF_GroundLevelSymbol>G</MF_GroundLevelSymbol>
+	<MF_UpperLevelSymbol>L{0}</MF_UpperLevelSymbol>
+	<MF_BasementLevelSymbol>B{0}</MF_BasementLevelSymbol>
+	
+	<!-- pawn columns -->
+	<MF_HighPriorityWorkGiverTypes>Following works would be scanned on pawn's current level, then other levels\n</MF_HighPriorityWorkGiverTypes>
+	<MF_LowPriorityWorkGiverTypes>If not found, following works would be scanned on pawn's current level, then other levels\n</MF_LowPriorityWorkGiverTypes>
+	
+	<MF_LevelWorkSettingsHeader>Level</MF_LevelWorkSettingsHeader>
+	<MF_LevelWorkSettingsEntryButtonLabel>Level work settings</MF_LevelWorkSettingsEntryButtonLabel>
+	<MF_LevelWorkSettingsEntryButtonTooltip>You can turn off some work types on each level. Once you turned them off, pawns won't do works of those types. This will help to improve performance but use them carefully.</MF_LevelWorkSettingsEntryButtonTooltip>
+</LanguageData>

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: supported vacstone foundation -->
+    <MF_SurfaceStonyRoofedFoundationVacstone.label>真空岩地基</MF_SurfaceStonyRoofedFoundationVacstone.label>
+    <!-- EN: A vacstone platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationVacstone.description>建在较低楼层的屋顶上的真空岩地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationVacstone.description>
+    
+</LanguageData>

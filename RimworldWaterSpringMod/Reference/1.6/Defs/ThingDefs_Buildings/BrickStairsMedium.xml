@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ThingDef Name="MF_BrickStairsMUpBaseA" ParentName="MF_StairEntranceBase" Abstract="True">
+		<description>A set of medium-width brick stairs designed for ascending. Durable and aesthetically pleasing. Requires an indoor, roofed room. Cannot be built underground.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>75</costStuffCount>
+		<statBases>
+			<WorkToBuild>3000</WorkToBuild>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/BrickStairsMedium/BrickStairsMUp</texPath>
+			<drawSize>(3.6, 3.6)</drawSize>
+			<drawOffsetNorth>(0, 0, 0.78)</drawOffsetNorth>
+			<drawOffsetSouth>(0, 0, 0.76)</drawOffsetSouth>
+			<drawOffsetWest>(0, 0, 0.74)</drawOffsetWest>
+			<drawOffsetEast>(0, 0, 0.74)</drawOffsetEast>
+		</graphicData>
+		<uiIconScale>0.9</uiIconScale>
+		<uiIconOffset>(0, -0.2)</uiIconOffset>
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_BrickStairsMUpBaseA">
+		<defName>MF_BrickStairsMUpA</defName>
+		<label>Z-shaped medium brick stairs up</label>
+		<uiOrder>3030</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>true</isUpstairs>
+					<connectedToExitDef>MF_BrickStairsMExitA</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	<ThingDef ParentName="MF_BrickStairsMUpBaseA">
+		<defName>MF_BrickStairsMUpAFlipped</defName>
+		<label>medium brick stairs up</label>
+		<uiOrder>3031</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>true</isUpstairs>
+					<connectedToExitDef>MF_BrickStairsMExitAFlipped</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef Name="MF_BrickStairsMDownBaseA" ParentName="MF_StairEntranceBase" Abstract="True">
+		<description>A set of medium-width brick stairs leading down. Built to last and adds a touch of style. Cannot be built on upper levels.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>75</costStuffCount>
+		<statBases>
+			<WorkToBuild>3000</WorkToBuild>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/BrickStairsMedium/BrickStairsMDown</texPath>
+			<drawSize>(2.4, 2.4)</drawSize>
+			<drawOffsetNorth>(0, 0, 0.14)</drawOffsetNorth>
+			<drawOffsetSouth>(0, 0, 0.14)</drawOffsetSouth>
+			<drawOffsetWest>(0, 0, 0.14)</drawOffsetWest>
+			<drawOffsetEast>(0, 0, 0.14)</drawOffsetEast>
+		</graphicData>
+		
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_BrickStairsMDownBaseA">
+		<defName>MF_BrickStairsMDownA</defName>
+		<label>Z-shaped medium brick stairs down</label>
+		<uiOrder>3032</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>false</isUpstairs>
+					<connectedToExitDef>MF_BrickStairsMExitA</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_BrickStairsMDownBaseA">
+		<defName>MF_BrickStairsMDownAFlipped</defName>
+		<label>medium brick stairs down</label>
+		<uiOrder>3033</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>false</isUpstairs>
+					<connectedToExitDef>MF_BrickStairsMExitAFlipped</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<!-- exit -->
+	<ThingDef Name="MF_BrickStairsMExitBaseA" ParentName="MF_StairExitBase" Abstract="True">
+		<label>medium brick stairs exit</label>
+		<description>The endpoint of a set of medium brick stairs.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>25</costStuffCount>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/BrickStairsMedium/BrickStairsMUp</texPath>
+			<drawSize>(2.5, 2.5)</drawSize>
+		</graphicData>
+	</ThingDef>
+	
+	<!-- default as Z-shaped stairs -->
+	<ThingDef ParentName="MF_BrickStairsMExitBaseA">
+		<defName>MF_BrickStairsMExitA</defName>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<upstairsEntranceDef>MF_BrickStairsMUpA</upstairsEntranceDef>
+					<downstairsEntranceDef>MF_BrickStairsMDownA</downstairsEntranceDef>
+					<oppositeRotWithEntrance>true</oppositeRotWithEntrance>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	<ThingDef ParentName="MF_BrickStairsMExitBaseA">
+		<defName>MF_BrickStairsMExitAFlipped</defName>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<upstairsEntranceDef>MF_BrickStairsMUpAFlipped</upstairsEntranceDef>
+					<downstairsEntranceDef>MF_BrickStairsMDownAFlipped</downstairsEntranceDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+</Defs>

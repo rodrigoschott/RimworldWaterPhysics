@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<!-- stairs utility -->
+	<MF_CurrentLevel>Current level: {0}</MF_CurrentLevel>
+	<MF_PowerOutput>Power output on this level: {0}W</MF_PowerOutput>
+	
+	<!-- gizmos -->
+	<MF_EnterStairs>Enter</MF_EnterStairs>
+	<MF_EnterStairsDesc>Select pawns and items to move to the connected level.</MF_EnterStairsDesc>
+	<MF_ViewConnectedLevel>View connected level</MF_ViewConnectedLevel>
+	<MF_ViewConnectedLevelDesc>View connected level</MF_ViewConnectedLevelDesc>
+	<MF_DeleteConnectedLevel>Delete connected levels</MF_DeleteConnectedLevel>
+	<MF_DeleteConnectedLevelDesc>Delete connected levels</MF_DeleteConnectedLevelDesc>
+	<MF_ConfirmDeleteConnectedLevel>[Dangerous!!!]Deleting the connected level will permanently remove everything on it and any levels branching from it. Are you sure you want to proceed?</MF_ConfirmDeleteConnectedLevel>
+	<MF_AutoTransferToggle>Auto transfer</MF_AutoTransferToggle>
+	<MF_AutoTransferToggleDesc>If enabled, the stair will periodically scan for permitted items (within the maximum range specified in the Transfer Policy) and add them to the load list. Pawns will haul them from current level to the connected level automatically.</MF_AutoTransferToggleDesc>
+	<MF_LinkedElevatorLevel>Linked with: {0}</MF_LinkedElevatorLevel>
+	<MF_BuildUpperElevator>Build on upper level</MF_BuildUpperElevator>
+	<MF_BuildUpperElevatorDesc>Elevators must be built on the same cell to function. Place a blueprint on the upper level.</MF_BuildUpperElevatorDesc>
+	<MF_BuildLowerElevator>Build on lower level</MF_BuildLowerElevator>
+	<MF_BuildLowerElevatorDesc>Elevators must be built on the same cell to function. Place a blueprint on the lower level.</MF_BuildLowerElevatorDesc>
+	<MF_LinkElevator>Link elevators</MF_LinkElevator>
+	<MF_LinkElevatorDesc>Link all elevators on this cell so pawns can move between each other.</MF_LinkElevatorDesc>
+	<MF_UnlinkingElevators>Unlinking elevators...</MF_UnlinkingElevators>
+	<MF_PrintStairsToggle>Show stairs</MF_PrintStairsToggle>
+	<MF_PrintStairsToggleDesc>Turn it off to make stairs invisible.</MF_PrintStairsToggleDesc>
+	
+	<!-- elevator - transfer vehicle -->
+	<MF_TransferVehicle>Transfer vehicle</MF_TransferVehicle>
+	<MF_TransferVehicleDesc>Transfer vehicle between levels.</MF_TransferVehicleDesc>
+	<MF_NoVehicleNearby>No vehicle nearby, drive closer.</MF_NoVehicleNearby>
+	<MF_TransferVehicleTo>Transfer {0} to {1}</MF_TransferVehicleTo>
+</LanguageData>

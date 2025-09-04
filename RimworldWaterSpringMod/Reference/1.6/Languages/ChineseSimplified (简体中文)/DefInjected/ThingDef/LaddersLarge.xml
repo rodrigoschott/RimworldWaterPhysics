@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: large ladder down -->
+    <MF_LadderLDownA.label>大型梯子（下）</MF_LadderLDownA.label>
+    <!-- EN: A sturdy, wide ladder leading to a lower level. Cannot be built on upper levels. -->
+    <MF_LadderLDownA.description>牢固和宽敞的的梯子，通向低层。在二层及以上无法建造。</MF_LadderLDownA.description>
+    
+    <!-- EN: large ladder exit -->
+    <MF_LadderLExitA.label>大型梯子出口</MF_LadderLExitA.label>
+    <!-- EN: The endpoint of a large ladder. -->
+    <MF_LadderLExitA.description>大型梯子的出口。</MF_LadderLExitA.description>
+    
+    <!-- EN: large ladder up -->
+    <MF_LadderLUpA.label>大型梯子（上）</MF_LadderLUpA.label>
+    <!-- EN: A sturdy, wide ladder for ascending to a higher level. Requires an indoor, roofed room. Cannot be built underground. -->
+    <MF_LadderLUpA.description>牢固和宽敞的的梯子，通向高层。需要建造在盖满屋顶的室内房间，在地下无法建造。</MF_LadderLUpA.description>
+    
+</LanguageData>

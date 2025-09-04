@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ThingDef ParentName="MF_ElevatorBase">
+		<defName>MF_WoodenElevatorA</defName>
+		<label>wooden elevator</label>
+		<description>A crude, creaky lift built from timber and powered by a ingenious pulley. Slow but steady.</description>
+		<size>(3, 3)</size>
+		<uiIconPath>MultiFloors/Buildings/WoodenElevator/WoodenElevatorAIcon</uiIconPath>
+		<uiIconScale>1.25</uiIconScale>
+		<uiIconOffset>(0, -0.08)</uiIconOffset>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>MultiFloors/Buildings/WoodenElevator/WoodenElevatorA</texPath>
+			<drawSize>(5, 5)</drawSize>
+			<drawOffset>(0, 0, 0)</drawOffset>
+			<!-- vanilla wood stuff -->
+			<color>(133, 97, 67)</color>
+		</graphicData>
+		<thingClass>MultiFloors.WoodenElevator</thingClass>
+		<statBases>
+			<WorkToBuild>1500</WorkToBuild>
+		</statBases>
+		<costList>
+			<ComponentIndustrial>4</ComponentIndustrial>
+      		<WoodLog>150</WoodLog>
+		</costList>
+		<uiOrder>3110</uiOrder>
+		<comps>
+			<!-- transmit power to linked stairs -->
+			<li Class="CompProperties_Power">
+				<compClass>CompPowerTrader</compClass>
+				<basePowerConsumption>0</basePowerConsumption>
+				<showPowerNeededIfOff>false</showPowerNeededIfOff>
+			</li>
+		</comps>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<elevatorSettings>
+					<moverGraphic>
+						<texPath>MultiFloors/Buildings/WoodenElevator/WoodenElevatorMovingA</texPath>
+						<drawSize>(5, 5)</drawSize>
+						<!-- a higher y to make it cover the shaft -->
+						<!-- z should be the same as the frame to make them aligned -->
+						<drawOffset>(0, 0.01, 0)</drawOffset>
+						<graphicClass>Graphic_Single</graphicClass>
+						<!-- todo: color for the rope -->
+						<color>(133, 97, 67)</color>
+					</moverGraphic>
+					<frontGraphic>
+						<texPath>MultiFloors/Buildings/WoodenElevator/WoodenElevatorFrontA</texPath>
+						<drawSize>(5, 5)</drawSize>
+						<!-- make it always above the moving part -->
+						<drawOffset>(0, 0.2, 0)</drawOffset>
+						<graphicClass>Graphic_Single</graphicClass>
+						<color>(133, 97, 67)</color>
+					</frontGraphic>
+					<appearingDuration>30</appearingDuration>
+					<switchingDuration>210</switchingDuration>
+				</elevatorSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+</Defs>

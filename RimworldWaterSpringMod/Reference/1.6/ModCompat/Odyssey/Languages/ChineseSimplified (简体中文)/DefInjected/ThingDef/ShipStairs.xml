@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: gravship stairs -->
+    <MF_GravshipStairsA.label>飞船梯子</MF_GravshipStairsA.label>
+    <!-- EN: A ladder for Gravship. It extends the area in which substructure can be built on upper decks. Requires an indoor, roofed room. -->
+    <MF_GravshipStairsA.description>供逆重飞船使用的梯子。它可以拓展上层甲板逆重飞船基架的建造范围，以供建造逆重增幅器。需要室内且盖满房顶的房间。</MF_GravshipStairsA.description>
+    
+    <!-- EN: gravship stairs exit -->
+    <MF_GravshipStairsExitA.label>飞船梯子出口</MF_GravshipStairsExitA.label>
+    <!-- EN: The endpoint of a gravship stairs. -->
+    <MF_GravshipStairsExitA.description>飞船梯子的出口。</MF_GravshipStairsExitA.description>
+    
+</LanguageData>

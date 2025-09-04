@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: supported granite foundation -->
+    <MF_SurfaceStonyRoofedFoundationGranite.label>花岗岩地基</MF_SurfaceStonyRoofedFoundationGranite.label>
+    <!-- EN: A granite platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationGranite.description>建在较低楼层的屋顶上的花岗岩地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationGranite.description>
+    
+    <!-- EN: supported limestone foundation -->
+    <MF_SurfaceStonyRoofedFoundationLimestone.label>石灰岩地基</MF_SurfaceStonyRoofedFoundationLimestone.label>
+    <!-- EN: A limestone platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationLimestone.description>建在较低楼层的屋顶上的石灰岩地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationLimestone.description>
+    
+    <!-- EN: supported marble foundation -->
+    <MF_SurfaceStonyRoofedFoundationMarble.label>大理石地基</MF_SurfaceStonyRoofedFoundationMarble.label>
+    <!-- EN: A marble platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationMarble.description>建在较低楼层的屋顶上的大理石地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationMarble.description>
+    
+    <!-- EN: supported sandstone foundation -->
+    <MF_SurfaceStonyRoofedFoundationSandstone.label>砂岩地基</MF_SurfaceStonyRoofedFoundationSandstone.label>
+    <!-- EN: A sandstone platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationSandstone.description>建在较低楼层的屋顶上的砂岩地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationSandstone.description>
+    
+    <!-- EN: supported slate foundation -->
+    <MF_SurfaceStonyRoofedFoundationSlate.label>板岩地基</MF_SurfaceStonyRoofedFoundationSlate.label>
+    <!-- EN: A slate platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceStonyRoofedFoundationSlate.description>建在较低楼层的屋顶上的板岩地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceStonyRoofedFoundationSlate.description>
+    
+    <!-- EN: supported wooden foundation -->
+    <MF_SurfaceWoodenRoofedFoundation.label>木制地基</MF_SurfaceWoodenRoofedFoundation.label>
+    <!-- EN: A wooden platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_SurfaceWoodenRoofedFoundation.description>建在较低楼层的屋顶上的木制地基。它能分散重量并稳定结构，从而可以安全地在上面建造建筑物和额外地板。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_SurfaceWoodenRoofedFoundation.description>
+    
+    <!-- EN: supported transparent foundation -->
+    <MF_TransparentFoundation.label>透明地基</MF_TransparentFoundation.label>
+    <!-- EN: A transparent platform built atop the roof of a lower level, which reveals the level below. If it breaks, buildings on top of it fall to the lower level. -->
+    <MF_TransparentFoundation.description>建在较低楼层的屋顶上的透明地基，用于透视下层结构。如果它破裂，上面的建筑物会坠落到较低楼层。</MF_TransparentFoundation.description>
+    
+</LanguageData>

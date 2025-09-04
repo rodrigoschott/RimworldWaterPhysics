@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Defs>
+	<TerrainDef Name="MF_VoidTerrainBase" ParentName="NaturalTerrainBase" Abstract="True">
+		<defName>MF_VoidTerrainBase</defName>
+		<dontRender>true</dontRender>
+		<!--<texturePath>Terrains/Void</texturePath>-->
+		<edgeType>FadeRough</edgeType>
+		<designationCategory/>
+		<renderPrecedence>300</renderPrecedence>
+		<altitudeLayer>Terrain</altitudeLayer>
+		<fertility>0</fertility>
+		<statBases>
+			<Beauty>0</Beauty>
+			<WorkToBuild>0</WorkToBuild>
+			<Flammability>0</Flammability>
+		</statBases>
+		<pathCost>100000</pathCost>
+		<passability>Impassable</passability>
+		<layerable>false</layerable>
+		<scatterType>SoftGray</scatterType>
+		<avoidWander>true</avoidWander>
+		<extinguishesFire>true</extinguishesFire>
+		<holdSnowOrSand>false</holdSnowOrSand>
+		<canBePolluted>false</canBePolluted>
+		<takeFootprints>false</takeFootprints>
+		<takeSplashes>false</takeSplashes>
+		<filthAcceptanceMask>
+			<li>None</li>
+		</filthAcceptanceMask>
+		<!-- so we can build foundation on upper levels -->
+		<affordances>
+			<li>Walkable</li>
+		</affordances>
+		<spaceEdgeGraphicData IsNull="True"/>
+	</TerrainDef>
+	
+	<TerrainDef Name="MF_RoofedFoundationBase" ParentName="FloorBase" Abstract="True">
+		<defName>MF_RoofedFoundationBase</defName>
+		<renderPrecedence>50</renderPrecedence>
+		<designationCategory>MultiFloors</designationCategory>
+		<isFoundation>true</isFoundation>
+		<!-- void terrain has this tag -->
+		<terrainAffordanceNeeded>Walkable</terrainAffordanceNeeded>
+		<constructEffect>ConstructDirt</constructEffect>
+		<isPaintable>true</isPaintable>
+		<scatterType>Rocky</scatterType>
+		<fertility>0</fertility>
+		<edgeType>FadeRough</edgeType>
+		<statBases>
+			<MarketValue>0</MarketValue>
+		</statBases>
+		<affordances>
+			<li>Light</li>
+			<li>Medium</li>
+			<li>Heavy</li>
+			<li>Walkable</li>
+		</affordances>
+		<filthAcceptanceMask>
+			<li>Terrain</li>
+			<li>Unnatural</li>
+		</filthAcceptanceMask>
+		<preventCraters>true</preventCraters>
+		<destroyOnBombDamageThreshold>1</destroyOnBombDamageThreshold>
+		<destroyBuildingsOnDestroyed>true</destroyBuildingsOnDestroyed>
+		<destroyEffect>Bridge_Collapse</destroyEffect>
+		<destroyEffectWater>Bridge_CollapseWater</destroyEffectWater>
+		<placeWorkers>
+			<li>MultiFloors.PlaceWorker_OnlyBuildableOnUpperLevels</li>
+		</placeWorkers>
+	</TerrainDef>
+</Defs>

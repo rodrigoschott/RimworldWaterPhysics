@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- haul across level designator -->
+	<!-- EN: Haul to {0} -->
+    <MF_DesignatorHaulTo>搬运到{0}</MF_DesignatorHaulTo>
+	<!-- EN: Haul to -->
+    <MF_DesignatorHaulToDestMapLabel>搬运到</MF_DesignatorHaulToDestMapLabel>
+	<!-- EN: Mark items to be hauled to a specific level. -->
+    <MF_DesignatorHaulToDestMapDesc>标记需要搬运到特定层的物品。</MF_DesignatorHaulToDestMapDesc>
+	<!-- EN: Must select destination through right click options first. -->
+    <MF_MustSelectTargetViaRightClickFirst>请先通过右键按钮设置目标楼层。</MF_MustSelectTargetViaRightClickFirst>
+	
+	<!-- EN: Lock floor -->
+    <MF_StayOnCurrentMapToggle>仅本层</MF_StayOnCurrentMapToggle>
+	<!-- EN: Pawns wouldn't search for jobs or switch to other levels when toggle on. -->
+    <MF_StayOnCurrentMapToggleDesc>开启后不会跨层寻找工作。</MF_StayOnCurrentMapToggleDesc>
+	
+	<!-- EN: Gather -->
+    <MF_GatherPawnsCommand>召集</MF_GatherPawnsCommand>
+	<!-- EN: Call colonists to move to the current spot. -->
+    <MF_GatherPawnsCommandDesc>选择并命令殖民者移动到当前地点。</MF_GatherPawnsCommandDesc>
+	<!-- EN: Selected: -->
+    <MF_GatherPawnsSelected>已选择：</MF_GatherPawnsSelected>
+	<!-- EN: Candidates: -->
+    <MF_GatherPawnsAllCandidates>候选：</MF_GatherPawnsAllCandidates>
+	<!-- EN: Cancel -->
+    <MF_GatherPawns_CancelButtonLabel>取消</MF_GatherPawns_CancelButtonLabel>
+	<!-- EN: Gather -->
+    <MF_GatherPawns_AcceptButtonLabel>召集</MF_GatherPawns_AcceptButtonLabel>
+	<!-- EN: Select/Deselect All -->
+    <MF_GatherPawns_AddAllButtonLabel>选取/反选全部</MF_GatherPawns_AddAllButtonLabel>
+    <!-- EN: Select/Deselect Prev. -->
+    <MF_GatherPawns_AddPrevSelectedButtonLabel>选取/反选上次</MF_GatherPawns_AddPrevSelectedButtonLabel>
+</LanguageData>

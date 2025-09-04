@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ThingDef ParentName="MF_StairEntranceBase">
+		<defName>MF_GravshipStairsA</defName>
+		<label>gravship stairs</label>
+		<description>A ladder for Gravship. It extends the area in which substructure can be built on upper decks. Requires an indoor, roofed room.</description>
+		<rotatable>true</rotatable>
+		<size>(1, 1)</size>
+		<costList>
+			<Steel>75</Steel>
+		</costList>
+		<statBases>
+			<WorkToBuild>2500</WorkToBuild>
+		</statBases>
+		<researchPrerequisites>
+			<li>BasicGravtech</li>
+		</researchPrerequisites>
+		<uiOrder>1000</uiOrder>
+		<uiIconScale>0.8</uiIconScale>
+		<uiIconOffset>(0, -0.02)</uiIconOffset>
+		<graphicData>
+			<!-- todo -->
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/ShipStairs/ShipStairsA</texPath>
+			<drawSize>(2, 2)</drawSize>
+			<drawOffset>(0, 0, 0.35)</drawOffset>
+		</graphicData>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>true</isUpstairs>
+					<connectedToExitDef>MF_GravshipStairsExitA</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_StairExitBase">
+		<defName>MF_GravshipStairsExitA</defName>
+		<label>gravship stairs exit</label>
+		<description>The endpoint of a gravship stairs.</description>
+		<rotatable>true</rotatable>
+		<size>(1, 1)</size>
+		<costList>
+			<Steel>25</Steel>
+		</costList>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/ShipStairs/ShipStairsExitA</texPath>
+			<drawSize>(2, 2)</drawSize>
+		</graphicData>
+		<building>
+			<relatedTerrain>
+				<li>Substructure</li>
+			</relatedTerrain>
+		</building>
+		<comps>
+			<li Class="CompProperties_SubstructureFootprint">
+				<radius>8.9</radius>
+			</li>
+		</comps>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<useSelfGraphicData>true</useSelfGraphicData>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+</Defs>

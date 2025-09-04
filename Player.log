@@ -1,0 +1,402 @@
+Mono path[0] = 'E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/Managed'
+Mono config path = 'E:/Jogos/Steam/steamapps/common/RimWorld/MonoBleedingEdge/etc'
+[PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+Initialize engine version: 2022.3.35f1 (011206c7a712)
+[Subsystems] Discovering subsystems at path E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/UnitySubsystems
+GfxDevice: creating device client; threaded=1; jobified=0
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce GTX 1080 (ID=0x1b80)
+    Vendor:   NVIDIA
+    VRAM:     8059 MB
+    Driver:   32.0.15.8108
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.172 seconds
+- Finished resetting the current domain, in  0.002 seconds
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+[PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+UnloadTime: 0.873800 ms
+Command line arguments: -savedatafolder=C:\Users\rodri\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios
+RimWorld 1.6.4566 rev607
+Save data folder overridden to C:\Users\rodri\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios
+Direct3D: detected that using refresh rate causes time drift. Will stop trusting refresh rate until the game window is moved.
+Direct3D: detected that vsync is broken (it does not limit frame rate properly). Delta time will now be calculated using cpu-side time stampling until the game window is moved.
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C3B59020.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C4A1F2D0.dll
+Prepatcher: Starting... (vanilla load took 2.700914s)
+Prepatcher: Renamed type RimWorld.Planet.WorldCameraDriver to RimWorld.Planet.WorldCameraDriverReplaced in assembly Assembly-CSharp.dll
+Prepatcher: Renamed type RimWorld.Planet.WorldCameraDriver to RimWorld.Planet.WorldCameraDriverReplaced in assembly PrepatcherImpl.dll
+Prepatcher: Game processing took 3515.0039ms
+Prepatcher: Serializing patched assemblies
+Prepatcher: Serializing took 1851.5623ms
+Prepatcher: Setting refonly
+Prepatcher: Loading patched assemblies
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105F28D6040.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105F37E7040.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C5B501F0.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C5B60E00.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C4E65020.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105F3A45040.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C5B6F810.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C5381840.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C571B030.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105C5BA9A20.dll
+Prepatcher: Done loading
+Command line arguments: -savedatafolder=C:\Users\rodri\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios
+RimWorld 1.6.4566 rev607
+Save data folder overridden to C:\Users\rodri\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105F4777820.dll
+Fallback handler could not load library E:/Jogos/Steam/steamapps/common/RimWorld/RimWorldWin64_Data/MonoBleedingEdge/data-00000105F4F23A50.dll
+Prepatcher: Restarted with the patched assembly, going silent.
+[Analyzer] Loaded version 1.6.0 rev 1
+XML error: Could not find parent node named "GravshipComponentBase" for node "ThingDef". Full node: <ThingDef ParentName="GravshipComponentBase"><defName>MF_SubGravEngine</defName><thingClass>MultiFloors.Gravships.Building_SubGravEngine</thingClass><label>grav engine amplifier</label><description>The amplifier of a grav engine, which intensifies the field around it to support lifting upper decks. Must be built on the same cell as the engine to function. \n\nWithout an amplifier on upper deck, launching a gravship will abandon that level.</description><drawerType>RealtimeOnly</drawerType><tickerType>Never</tickerType><minifiedDef>MF_MinifiedSubGravEngine</minifiedDef><graphicData><graphicClass>Graphic_Single</graphicClass><texPath>Things/Building/GravEngine/GravEngine</texPath><drawSize>(3,3)</drawSize></graphicData><statBases><WorkToBuild>24000</WorkToBuild><MaxHitPoints>800</MaxHitPoints><Mass>30</Mass><GravshipRange>0</GravshipRange><SubstructureSupport>500</SubstructureSupport><MarketValue>2000</MarketValue></statBases><size>(3,3)</size><castEdgeShadows>true</castEdgeShadows><fillPercent>0.6</fillPercent><passability>PassThroughOnly</passability><pathCost>20</pathCost><canOverlapZones>false</canOverlapZones><designationCategory>MultiFloors</designationCategory><constructionSkillPrerequisite>4</constructionSkillPrerequisite><resourcesFractionWhenDeconstructed>1</resourcesFractionWhenDeconstructed><researchPrerequisites><li>BasicGravtech</li></researchPrerequisites><costList><Gravcore>2</Gravcore><GravlitePanel>100</GravlitePanel><ComponentIndustrial>4</ComponentIndustrial><Steel>200</Steel></costList><terrainAffordanceNeeded>Substructure</terrainAffordanceNeeded><building><ai_neverTrashThis>true</ai_neverTrashThis><deconstructible>false</deconstructible><relatedBuildCommands><li>GravshipHull</li></relatedBuildCommands><relatedTerrain><li>Substructure</li></relatedTerrain></building><comps><li Class="CompProperties_SubstructureFootprint"><radius>18.9</radius></li><li Class="CompProperties_Glower"><glowRadius>8</glowRadius><glowColor>(0,218,255,0)</glowColor></li><li Class="CompProperties_AmbientSound"><sound>GravshipEngine_Ambient</sound></li></comps></ThingDef>
+XML error: <preventRoofAttach>true</preventRoofAttach> doesn't correspond to any field in type BuildingProperties. Context: <building><isEdifice>true</isEdifice><preventRoofAttach>true</preventRoofAttach></building>
+Config error in MF_SubGravEngine: is minifiable but not in any thing category
+Config error in MF_SubGravEngine: is minifiable but not in any thing category
+Unloading 5 Unused Serialized files (Serialized files now loaded: 5)
+Unloading 99 unused Assets to reduce memory usage. Loaded Objects now: 28080.
+Total: 289.323300 ms (FindLiveObjects: 1.515900 ms CreateObjectMapping: 2.382300 ms MarkObjects: 285.062500 ms  DeleteObjects: 0.362400 ms)
+
+CharacterEditor v1.6.3 initializing...
+updating labels for english...
+loading pawn slot content from file...
+character editor instance created
+checking editor settings...
+bodysizes genes are active
+CharacterEditor v1.6.3 ...done
+CE is trying to create default parameter lists ...
+creating default parameter list for genes...
+250 default entities for genes created
+creating default parameter list for objects...
+1660 default entities for objects created
+creating default parameter list for turrets...
+12 default entities for turrets created
+...lists created
+CE is trying to apply modified parameters...
+no modifications for genes
+no modifications for lifestages
+...done
+Direct3D: detected that using refresh rate causes time drift. Will stop trusting refresh rate until the game window is moved.
+Direct3D: detected that vsync is broken (it does not limit frame rate properly). Delta time will now be calculated using cpu-side time stampling until the game window is moved.
+Unloading 3 Unused Serialized files (Serialized files now loaded: 5)
+[PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+UnloadTime: 0.339000 ms
+FileNotFoundException: Cannot resolve dependency to assembly 'UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because it has not been preloaded. When using the ReflectionOnly APIs, dependent assemblies must be pre-loaded or loaded on demand through the ReflectionOnlyAssemblyResolve event.
+
+
+Unloading 2 unused Assets to reduce memory usage. Loaded Objects now: 28287.
+Total: 214.065000 ms (FindLiveObjects: 1.211700 ms CreateObjectMapping: 1.967000 ms MarkObjects: 210.834200 ms  DeleteObjects: 0.051900 ms)
+
+Loading game from file New Arrivals58 with mods:
+  - zetrith.prepatcher
+  - brrainz.harmony
+  - Ludeon.RimWorld
+  - Ludeon.RimWorld.Royalty
+  - Ludeon.RimWorld.Ideology
+  - Ludeon.RimWorld.Biotech
+  - Ludeon.RimWorld.Anomaly
+  - void.charactereditor
+  - Neronix17.Retexture.CharacterEditor
+  - Dubwise.DubsPerformanceAnalyzer.steam
+  - telardo.MultiFloorsDev
+  - Ludeon.RimWorld.Odyssey
+  - sarg.smartspeed
+  - rodrigoschott.WaterSpringMod
+Direct3D: detected that using refresh rate causes time drift. Will stop trusting refresh rate until the game window is moved.
+Direct3D: detected that vsync is broken (it does not limit frame rate properly). Delta time will now be calculated using cpu-side time stampling until the game window is moved.
+checking editor settings...
+bodysizes genes are active
+checking editor settings...
+bodysizes genes are active
+checking editor settings...
+bodysizes genes are active
+Unloading 0 Unused Serialized files (Serialized files now loaded: 5)
+Unloading 901 unused Assets to reduce memory usage. Loaded Objects now: 45403.
+Total: 345.032200 ms (FindLiveObjects: 2.733800 ms CreateObjectMapping: 5.524600 ms MarkObjects: 335.959900 ms  DeleteObjects: 0.813600 ms)
+
+Direct3D: detected that using refresh rate causes time drift. Will stop trusting refresh rate until the game window is moved.
+Direct3D: detected that vsync is broken (it does not limit frame rate properly). Delta time will now be calculated using cpu-side time stampling until the game window is moved.
+Memory Statistics:
+[ALLOC_TEMP_TLS] TLS Allocator
+  StackAllocators : 
+    [ALLOC_TEMP_MAIN]
+      Peak usage frame count: [0-1.0 KB]: 42693 frames, [1.0 KB-2.0 KB]: 10 frames, [2.0 KB-4.0 KB]: 10424 frames, [4.0 KB-8.0 KB]: 2438 frames, [8.0 KB-16.0 KB]: 1315 frames, [16.0 KB-32.0 KB]: 1106 frames, [32.0 KB-64.0 KB]: 56 frames, [64.0 KB-128.0 KB]: 112 frames, [128.0 KB-256.0 KB]: 1 frames, [2.0 MB-4.0 MB]: 3 frames, [4.0 MB-8.0 MB]: 1 frames
+      Initial Block Size 4.0 MB
+      Current Block Size 5.6 MB
+      Peak Allocated Bytes 5.6 MB
+      Overflow Count 1
+    [ALLOC_TEMP_Loading.AsyncRead]
+      Initial Block Size 64.0 KB
+      Current Block Size 120.0 KB
+      Peak Allocated Bytes 117.3 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Loading.PreloadManager]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 3.8 KB
+      Overflow Count 8
+    [ALLOC_TEMP_Background Job.Worker 8]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 6]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 176 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 0]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 160 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 10]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 9]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 5]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 176 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 14]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 6]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 4]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 176 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 3]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 176 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 12]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_EnlightenWorker] x 4
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 15]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 1]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 2]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 7]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_UnityGfxDeviceWorker]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 10.3 KB
+      Overflow Count 0
+    [ALLOC_TEMP_AssetGarbageCollectorHelper] x 7
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 138 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 5]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 13]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 1]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 507 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 2]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 480 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 3]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 11]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 0]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 4]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BatchDeleteObjects]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+[ALLOC_DEFAULT] Dual Thread Allocator
+  Peak main deferred allocation count 31744
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.0 MB
+      Failed Allocations. Bucket layout:
+        16B: 5 Subsections = 5120 buckets. Failed count: 89411
+        32B: 34 Subsections = 17408 buckets. Failed count: 87236
+        48B: 60 Subsections = 20480 buckets. Failed count: 153129
+        64B: 45 Subsections = 11520 buckets. Failed count: 76275
+        80B: 87 Subsections = 17817 buckets. Failed count: 177832
+        96B: 9 Subsections = 1536 buckets. Failed count: 50291
+        112B: 11 Subsections = 1609 buckets. Failed count: 20550
+        128B: 5 Subsections = 640 buckets. Failed count: 11124
+    [ALLOC_DEFAULT_MAIN]
+      Peak usage frame count: [16.0 MB-32.0 MB]: 37960 frames, [128.0 MB-256.0 MB]: 20199 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 12
+      Peak Allocated memory 201.9 MB
+      Peak Large allocation bytes 31.2 MB
+    [ALLOC_DEFAULT_THREAD]
+      Peak usage frame count: [8.0 MB-16.0 MB]: 42928 frames, [16.0 MB-32.0 MB]: 54 frames, [32.0 MB-64.0 MB]: 728 frames, [64.0 MB-128.0 MB]: 855 frames, [128.0 MB-256.0 MB]: 13594 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 11
+      Peak Allocated memory 155.1 MB
+      Peak Large allocation bytes 10.0 MB
+[ALLOC_TEMP_JOB_1_FRAME]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_2_FRAMES]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_4_FRAMES (JobTemp)]
+  Initial Block Size 2.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_ASYNC (Background)]
+  Initial Block Size 1.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_GFX] Dual Thread Allocator
+  Peak main deferred allocation count 900
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.0 MB
+      Failed Allocations. Bucket layout:
+        16B: 5 Subsections = 5120 buckets. Failed count: 89411
+        32B: 34 Subsections = 17408 buckets. Failed count: 87236
+        48B: 60 Subsections = 20480 buckets. Failed count: 153129
+        64B: 45 Subsections = 11520 buckets. Failed count: 76275
+        80B: 87 Subsections = 17817 buckets. Failed count: 177832
+        96B: 9 Subsections = 1536 buckets. Failed count: 50291
+        112B: 11 Subsections = 1609 buckets. Failed count: 20550
+        128B: 5 Subsections = 640 buckets. Failed count: 11124
+    [ALLOC_GFX_MAIN]
+      Peak usage frame count: [128.0 KB-256.0 KB]: 1 frames, [2.0 MB-4.0 MB]: 14554 frames, [4.0 MB-8.0 MB]: 30008 frames, [64.0 MB-128.0 MB]: 7411 frames, [128.0 MB-256.0 MB]: 6183 frames, [0.50 GB-1.00 GB]: 2 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 9
+      Peak Allocated memory 0.68 GB
+      Peak Large allocation bytes 0.65 GB
+    [ALLOC_GFX_THREAD]
+      Peak usage frame count: [0-1.0 KB]: 38206 frames, [1.0 KB-2.0 KB]: 1565 frames, [2.0 KB-4.0 KB]: 3062 frames, [4.0 KB-8.0 KB]: 1731 frames, [8.0 KB-16.0 KB]: 2 frames, [16.0 KB-32.0 KB]: 1083 frames, [32.0 KB-64.0 KB]: 12309 frames, [64.0 KB-128.0 KB]: 201 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 1
+      Peak Allocated memory 64.9 KB
+      Peak Large allocation bytes 0 B
+[ALLOC_CACHEOBJECTS] Dual Thread Allocator
+  Peak main deferred allocation count 101
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.0 MB
+      Failed Allocations. Bucket layout:
+        16B: 5 Subsections = 5120 buckets. Failed count: 89411
+        32B: 34 Subsections = 17408 buckets. Failed count: 87236
+        48B: 60 Subsections = 20480 buckets. Failed count: 153129
+        64B: 45 Subsections = 11520 buckets. Failed count: 76275
+        80B: 87 Subsections = 17817 buckets. Failed count: 177832
+        96B: 9 Subsections = 1536 buckets. Failed count: 50291
+        112B: 11 Subsections = 1609 buckets. Failed count: 20550
+        128B: 5 Subsections = 640 buckets. Failed count: 11124
+    [ALLOC_CACHEOBJECTS_MAIN]
+      Peak usage frame count: [4.0 MB-8.0 MB]: 1 frames, [8.0 MB-16.0 MB]: 37959 frames, [16.0 MB-32.0 MB]: 20199 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 5
+      Peak Allocated memory 17.3 MB
+      Peak Large allocation bytes 0 B
+    [ALLOC_CACHEOBJECTS_THREAD]
+      Peak usage frame count: [4.0 KB-8.0 KB]: 42311 frames, [32.0 KB-64.0 KB]: 1 frames, [64.0 KB-128.0 KB]: 15844 frames, [256.0 KB-0.5 MB]: 2 frames, [0.5 MB-1.0 MB]: 1 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 1
+      Peak Allocated memory 0.6 MB
+      Peak Large allocation bytes 0 B
+[ALLOC_TYPETREE] Dual Thread Allocator
+  Peak main deferred allocation count 0
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.0 MB
+      Failed Allocations. Bucket layout:
+        16B: 5 Subsections = 5120 buckets. Failed count: 89411
+        32B: 34 Subsections = 17408 buckets. Failed count: 87236
+        48B: 60 Subsections = 20480 buckets. Failed count: 153129
+        64B: 45 Subsections = 11520 buckets. Failed count: 76275
+        80B: 87 Subsections = 17817 buckets. Failed count: 177832
+        96B: 9 Subsections = 1536 buckets. Failed count: 50291
+        112B: 11 Subsections = 1609 buckets. Failed count: 20550
+        128B: 5 Subsections = 640 buckets. Failed count: 11124
+    [ALLOC_TYPETREE_MAIN]
+      Peak usage frame count: [4.0 KB-8.0 KB]: 1 frames, [8.0 KB-16.0 KB]: 37959 frames, [32.0 KB-64.0 KB]: 20199 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 1
+      Peak Allocated memory 50.2 KB
+      Peak Large allocation bytes 0 B
+    [ALLOC_TYPETREE_THREAD]
+      Peak usage frame count: [0-1.0 KB]: 58159 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 0
+      Peak Allocated memory 0 B
+      Peak Large allocation bytes 0 B

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: minified thing -->
+    <MF_MinifiedSubGravEngine.label>TODO</MF_MinifiedSubGravEngine.label>
+    
+    <!-- EN: grav engine amplifier -->
+    <MF_SubGravEngine.label>逆重引擎增幅器</MF_SubGravEngine.label>
+    <!-- EN: The amplifier of a grav engine, which intensifies the field around it to support lifting upper decks. Must be built on the same cell as the engine to function. \n\nWithout an amplifier on upper deck, launching a gravship will abandon that level. -->
+    <MF_SubGravEngine.description>逆重引擎的增幅器，它强化逆重引擎的场域以抬升上层甲板。需要建造在逆重引擎的相同位置。\n\n逆重飞船发射时不会抬升没有增幅器的上层甲板。</MF_SubGravEngine.description>
+    
+</LanguageData>

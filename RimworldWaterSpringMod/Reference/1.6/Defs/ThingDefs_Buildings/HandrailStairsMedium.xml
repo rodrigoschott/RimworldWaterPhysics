@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ThingDef Name="MF_HandrailStairsMUpBaseA" ParentName="MF_StairEntranceBase" Abstract="True">
+		<description>Moderately wide stairs with sturdy handrails for ascending to a higher level. Requires an indoor, roofed room. Cannot be built underground.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+			<li>Woody</li>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>75</costStuffCount>
+		<statBases>
+			<WorkToBuild>3000</WorkToBuild>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/HandrailStairsMedium/HandrailStairsMUp</texPath>
+			<drawSize>(3.3, 3.3)</drawSize>
+			<drawOffsetNorth>(0, 0, 0.76)</drawOffsetNorth>
+			<drawOffsetSouth>(0, 0, 0.4)</drawOffsetSouth>
+			<drawOffsetWest>(-0.25, 0, 0.55)</drawOffsetWest>
+			<drawOffsetEast>(0.25, 0, 0.55)</drawOffsetEast>
+		</graphicData>
+		<uiIconScale>0.9</uiIconScale>
+		<uiIconOffset>(0, -0.2)</uiIconOffset>
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_HandrailStairsMUpBaseA">
+		<defName>MF_HandrailStairsMUpA</defName>
+		<label>Z-shaped medium handrail stairs up</label>
+		<uiOrder>3050</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>true</isUpstairs>
+					<connectedToExitDef>MF_HandrailStairsMExitA</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	<ThingDef ParentName="MF_HandrailStairsMUpBaseA">
+		<defName>MF_HandrailStairsMUpAFlipped</defName>
+		<label>medium handrail stairs up</label>
+		<uiOrder>3051</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>true</isUpstairs>
+					<connectedToExitDef>MF_HandrailStairsMExitAFlipped</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef Name="MF_HandrailStairsMDownBaseA" ParentName="MF_StairEntranceBase" Abstract="True">
+		<description>Moderately wide stairs with sturdy handrails leading to a lower level. Cannot be built on upper levels.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+			<li>Woody</li>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>75</costStuffCount>
+		<statBases>
+			<WorkToBuild>3000</WorkToBuild>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<texPath>MultiFloors/Buildings/HandrailStairsMedium/HandrailStairsMDown</texPath>
+			<drawSize>(2.2, 2.2)</drawSize>
+			<drawOffsetNorth>(0, 0, 0)</drawOffsetNorth>
+			<drawOffsetSouth>(0, 0, 0.2)</drawOffsetSouth>
+			<drawOffsetWest>(0.25, 0, 0)</drawOffsetWest>
+			<drawOffsetEast>(-0.3, 0, 0.06)</drawOffsetEast>
+		</graphicData>
+		
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_HandrailStairsMDownBaseA">
+		<defName>MF_HandrailStairsMDownA</defName>
+		<label>Z-shaped medium handrail stairs down</label>
+		<uiOrder>3052</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>false</isUpstairs>
+					<connectedToExitDef>MF_HandrailStairsMExitA</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef ParentName="MF_HandrailStairsMDownBaseA">
+		<defName>MF_HandrailStairsMDownAFlipped</defName>
+		<label>medium handrail stairs down</label>
+		<uiOrder>3053</uiOrder>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<isUpstairs>false</isUpstairs>
+					<connectedToExitDef>MF_HandrailStairsMExitAFlipped</connectedToExitDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+	<ThingDef Name="MF_HandrailStairsMExitBaseA" ParentName="MF_StairExitBase" Abstract="True" >
+		<label>medium handrail stairs exit</label>
+		<description>The endpoint of a medium handrail stairs.</description>
+		<rotatable>true</rotatable>
+		<size>(2, 2)</size>
+		<stuffCategories>
+			<li>Metallic</li>
+			<li>Woody</li>
+			<li>Stony</li>
+		</stuffCategories>
+		<costStuffCount>75</costStuffCount>
+		
+	</ThingDef>
+	
+	<!-- default as Z-shaped stairs -->
+	<ThingDef ParentName="MF_HandrailStairsMExitBaseA">
+		<defName>MF_HandrailStairsMExitA</defName>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<upstairsEntranceDef>MF_HandrailStairsMUpA</upstairsEntranceDef>
+					<downstairsEntranceDef>MF_HandrailStairsMDownA</downstairsEntranceDef>
+					<oppositeRotWithEntrance>true</oppositeRotWithEntrance>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	<ThingDef ParentName="MF_HandrailStairsMExitBaseA">
+		<defName>MF_HandrailStairsMExitAFlipped</defName>
+		<modExtensions>
+			<li Class="MultiFloors.StairsModExtension">
+				<stairsSettings>
+					<upstairsEntranceDef>MF_HandrailStairsMUpAFlipped</upstairsEntranceDef>
+					<downstairsEntranceDef>MF_HandrailStairsMDownAFlipped</downstairsEntranceDef>
+				</stairsSettings>
+			</li>
+		</modExtensions>
+	</ThingDef>
+	
+</Defs>

@@ -64,6 +64,8 @@ namespace WaterSpringMod.WaterSpring
                     {
                         // Before destroying, restore original terrain if needed
                         TryRestoreOriginalTerrain();
+                        // If this tile is a hole or adjacent to one, wake upper maps because the lower outlet changed
+                        try { VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(Map, Position); } catch { }
                         this.Destroy();
                     }
                 }
@@ -394,7 +396,14 @@ namespace WaterSpringMod.WaterSpring
                                         // Reactivate tile to resume processing only if still present
                                         if (!Destroyed && Volume > 0)
                                         {
+                                            // Wake this tile
                                             Reactivate();
+                                            // Nudge neighbors and a small radius to resume diffusion promptly
+                                            var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+                                            dm?.ActivateNeighbors(Map, Position);
+                                            dm?.ReactivateInRadius(Map, Position);
+                                            // Propagate upward in case this affects vertical flow through holes
+                                            try { VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(Map, Position); } catch { }
                                         }
                                         // Optional: visual flash in debug
                                         if (s.debugModeEnabled)
@@ -427,8 +436,10 @@ namespace WaterSpringMod.WaterSpring
             {
                 // Check adjacent cells (cardinal directions only)
                 IntVec3 pos = Position;
-                IntVec3[] validCells = new IntVec3[4]; // Store valid cells
-                FlowingWater[] existingWaters = new FlowingWater[4]; // Store existing water objects
+                IntVec3[] validCells = new IntVec3[8]; // include up to 4 local + up to 4 virtual (void->down) slots
+                FlowingWater[] existingWaters = new FlowingWater[8]; // parallel storage for targets (same or lower map)
+                Map[] targetMaps = new Map[8]; // track which map each target belongs to
+                IntVec3[] targetCells = new IntVec3[8]; // track target cell (same or lower map)
                 int validCount = 0;
                 
                 if (debug)
@@ -436,17 +447,94 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Scanning adjacent cells for water at {Position}");
                 }
                 
+                // If current tile is a hole, add a straight-down candidate first
+                if (VerticalPortalBridge.IsHoleAt(Map, pos))
+                {
+                    if (VerticalPortalBridge.TryGetLowerMap(Map, out var selfLower))
+                    {
+                        if (pos.InBounds(selfLower))
+                        {
+                            FlowingWater selfLowerWater = selfLower.thingGrid.ThingAt<FlowingWater>(pos);
+                            validCells[validCount] = pos;
+                            targetCells[validCount] = pos;
+                            targetMaps[validCount] = selfLower;
+                            existingWaters[validCount] = selfLowerWater;
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"[Portal] self-hole at {pos}; lower map #{selfLower.uniqueID}; target is {(selfLowerWater!=null?"existing":"empty")} water");
+                            }
+                            validCount++;
+                        }
+                        else if (debug)
+                        {
+                            WaterSpringLogger.LogDebug($"[Portal] self-hole: lower map does not contain cell {pos}");
+                        }
+                    }
+                    else if (debug)
+                    {
+                        WaterSpringLogger.LogDebug("[Portal] self-hole: lower map not resolved");
+                    }
+                }
+
                 // First pass: Find all valid cells and their contents
                 foreach (IntVec3 neighbor in GenAdj.CardinalDirections)
                 {
                     IntVec3 adjacentCell = pos + neighbor;
-                    
-                    // Skip if not valid or not walkable
-                    if (!adjacentCell.InBounds(Map) || !IsCellPassableForWater(adjacentCell))
+                    if (!adjacentCell.InBounds(Map)) continue;
+
+                    // Check for WS_Hole building first (even if not walkable)
+                    if (VerticalPortalBridge.IsHoleAt(Map, adjacentCell))
+                    {
+                        if (VerticalPortalBridge.TryGetLowerMap(Map, out var lowerMap))
+                        {
+                            if (adjacentCell.InBounds(lowerMap))
+                            {
+                                bool passable = true;
+                                if (!adjacentCell.Walkable(lowerMap))
+                                {
+                                    TerrainDef tLower = lowerMap.terrainGrid.TerrainAt(adjacentCell);
+                                    if (!(tLower == TerrainDefOf.WaterShallow || tLower == TerrainDefOf.WaterDeep))
+                                    {
+                                        passable = false;
+                                    }
+                                }
+                                if (passable)
+                                {
+                                    FlowingWater lowerWater = lowerMap.thingGrid.ThingAt<FlowingWater>(adjacentCell);
+                                    validCells[validCount] = adjacentCell;
+                                    targetCells[validCount] = adjacentCell;
+                                    targetMaps[validCount] = lowerMap;
+                                    existingWaters[validCount] = lowerWater;
+                                    if (debug)
+                                    {
+                                        WaterSpringLogger.LogDebug($"[Portal] neighbor-hole at {adjacentCell}; lower map #{lowerMap.uniqueID}; target is {(lowerWater!=null?"existing":"empty")} water");
+                                    }
+                                    validCount++;
+                                }
+                                else if (debug)
+                                {
+                                    WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower cell {adjacentCell} not passable and not water; skipping");
+                                }
+                            }
+                            else if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower map does not contain cell {adjacentCell}; skipping");
+                            }
+                        }
+                        else if (debug)
+                        {
+                            WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower map not resolved for {adjacentCell}");
+                        }
+                        // Do not add same-map candidate for hole tile (acts as portal)
+                        continue;
+                    }
+
+                    // Non-void neighbor: require passability on this map
+                    if (!IsCellPassableForWater(adjacentCell))
                     {
                         if (debug)
                         {
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} is not valid (not in bounds or not walkable)");
+                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} is not passable");
                         }
                         continue;
                     }
@@ -465,8 +553,10 @@ namespace WaterSpringMod.WaterSpring
                     // Look for existing water in this cell
                     FlowingWater existingWater = Map.thingGrid.ThingAt<FlowingWater>(adjacentCell);
                     
-                    // Store valid cell info
+                    // Store valid cell info for same-map neighbor
                     validCells[validCount] = adjacentCell;
+                    targetCells[validCount] = adjacentCell;
+                    targetMaps[validCount] = Map;
                     existingWaters[validCount] = existingWater;
                     
                     if (debug)
@@ -476,6 +566,7 @@ namespace WaterSpringMod.WaterSpring
                     }
                     
                     validCount++;
+
                 }
                 
                 // If we found valid cells, choose the best one to transfer water to
@@ -529,8 +620,36 @@ namespace WaterSpringMod.WaterSpring
                                 if (newWater != null && newWater is FlowingWater typedWater)
                                 {
                                     typedWater.Volume = 0;
-                                    GenSpawn.Spawn(newWater, validCells[emptyIndex], Map);
-                                    bool moved = TransferVolume(typedWater);
+                                    Map destMap = targetMaps[emptyIndex] ?? Map;
+                                    IntVec3 destCell = targetCells[emptyIndex];
+                                    GenSpawn.Spawn(newWater, destCell, destMap);
+                                    bool moved = false;
+                                    if (destMap == this.Map)
+                                    {
+                                        moved = TransferVolume(typedWater);
+                                    }
+                                    else
+                                    {
+                                        // Manual 1-unit transfer across maps; respect capacity and min-diff (dest is newly spawned => allowed)
+                                        if (this.Volume > 0)
+                                        {
+                                            typedWater.AddVolume(1);
+                                            this.Volume -= 1;
+                                            if (debug)
+                                            {
+                                                WaterSpringLogger.LogDebug($"[Portal] cross-map expansion: {this.Position} (vol now {this.Volume}) -> {destCell} on map #{destMap.uniqueID} (new water vol 1)");
+                                            }
+                                            moved = true;
+                                            if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
+                                            {
+                                                var diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                                diffusionManager?.RegisterActiveTile(this.Map, this.Position);
+                                                diffusionManager?.RegisterActiveTile(destMap, destCell);
+                                                this.ResetStabilityCounter();
+                                                typedWater.ResetStabilityCounter();
+                                            }
+                                        }
+                                    }
                                     if (moved)
                                     {
                                         // Mark inbound direction for the new tile to reduce immediate backflow
@@ -589,9 +708,40 @@ namespace WaterSpringMod.WaterSpring
                         {
                             if (debug)
                             {
-                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Transferring to existing water at {validCells[chosen]} with volume {existingWaters[chosen].Volume} (minDiff {minDiff})");
+                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Transferring to existing water at {validCells[chosen]} (map {(targetMaps[chosen]==Map?"same":"lower")}) with volume {existingWaters[chosen].Volume} (minDiff {minDiff})");
                             }
-                            bool transferred = TransferVolume(existingWaters[chosen]);
+                            bool transferred = false;
+                            if (targetMaps[chosen] == this.Map)
+                            {
+                                transferred = TransferVolume(existingWaters[chosen]);
+                            }
+                            else
+                            {
+                                // Cross-map transfer: enforce min-diff and capacity
+                                var dest = existingWaters[chosen];
+                                if (dest.Volume < MaxVolume)
+                                {
+                                    int required = minDiff;
+                                    if ((this.Volume - dest.Volume) >= required)
+                                    {
+                                        dest.AddVolume(1);
+                                        this.Volume -= 1;
+                                        if (debug)
+                                        {
+                                            WaterSpringLogger.LogDebug($"[Portal] cross-map transfer: {this.Position} -> {targetCells[chosen]} on map #{targetMaps[chosen].uniqueID}; src vol now {this.Volume}, dest vol now {dest.Volume}");
+                                        }
+                                        transferred = true;
+                                        if (settings.useActiveTileSystem)
+                                        {
+                                            var diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                            diffusionManager?.RegisterActiveTile(this.Map, this.Position);
+                                            diffusionManager?.RegisterActiveTile(targetMaps[chosen], targetCells[chosen]);
+                                            this.ResetStabilityCounter();
+                                            dest.ResetStabilityCounter();
+                                        }
+                                    }
+                                }
+                            }
                             if (transferred && settings.antiBackflowEnabled)
                             {
                                 // Update inbound/outbound markers to discourage immediate backflow

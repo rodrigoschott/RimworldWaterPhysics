@@ -67,6 +67,8 @@ namespace WaterSpringMod
     public int reactivationMaxTiles = 128; // Default: process up to 128 tiles immediately
     public bool reactivationImmediateTransfers = true; // Default: attempt a single immediate transfer on wake
 
+    // Vertical portal: no settings required; uses WS_Hole and a fixed cache TTL
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -126,6 +128,7 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref reactivationRadius, "reactivationRadius", 8);
             Scribe_Values.Look(ref reactivationMaxTiles, "reactivationMaxTiles", 128);
             Scribe_Values.Look(ref reactivationImmediateTransfers, "reactivationImmediateTransfers", true);
+            // No per-setting fields for vertical portal bridge
             // Sanitize values after loading/applying defaults
             ClampAndSanitize();
         }
@@ -172,6 +175,8 @@ namespace WaterSpringMod
             evaporationMaxVolumeThreshold = Mathf.Clamp(evaporationMaxVolumeThreshold, 0, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
             evaporationChancePercent = Mathf.Clamp(evaporationChancePercent, 0, 100);
             evaporationChancePercentRoofed = Mathf.Clamp(evaporationChancePercentRoofed, 0, 100);
+
+            // No clamps needed for vertical portal bridge
         }
     }
 }

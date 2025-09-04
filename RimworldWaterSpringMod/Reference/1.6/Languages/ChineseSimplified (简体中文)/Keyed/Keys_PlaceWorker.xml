@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- general and foundation -->
+	<!-- EN: Can't be built on upper levels. -->
+    <MF_UnbuildableOnUpperLevels>无法在上层建造。</MF_UnbuildableOnUpperLevels>
+	<!-- EN: Can only be built on upper levels. -->
+    <MF_OnlyBuildableOnUpperLevels>无法在地下建造。</MF_OnlyBuildableOnUpperLevels>
+	<!-- EN: Must be built on top of roof. -->
+    <MF_MustBeBuiltOnTopOfRoof>必须建造在屋顶上。</MF_MustBeBuiltOnTopOfRoof>
+	
+	<!-- stair place worker -->
+	<!-- EN: Room size is too small. Must be at least {0} cells. -->
+    <MF_RoomTooSmall>当前房间太小。大小至少要为{0}格。</MF_RoomTooSmall>
+	<!-- EN: Must be built indoor and under the roof. -->
+    <MF_MustBeBuiltIndoor>必须建在室内的屋顶下。</MF_MustBeBuiltIndoor>
+	<!-- EN: Can't build upstairs in basement. -->
+    <MF_CantBuildUpStairInBasement>地下无法建造。</MF_CantBuildUpStairInBasement>
+	<!-- EN: Can't build upstairs without roof. -->
+    <MF_CantBuildUpStairWithoutRoof>必须建在屋顶下。</MF_CantBuildUpStairWithoutRoof>
+	<!-- EN: Can't build downstairs on upper levels. -->
+    <MF_CantBuildDownStairAboveGround>地上无法建造。</MF_CantBuildDownStairAboveGround>
+	<!-- EN: Can't build downstairs in current biome. -->
+    <MF_CantBuildDownStairInCurrentBiome>无法在当前地貌建造。</MF_CantBuildDownStairInCurrentBiome>
+	<!-- EN: Can be linked with: -->
+    <MF_PotentialElevatorToLink>可以链接到</MF_PotentialElevatorToLink>
+	<!-- EN: No elevator can be linked. -->
+    <MF_NoElevatorToLinkWith>该位置无可链接电梯</MF_NoElevatorToLinkWith>
+</LanguageData>

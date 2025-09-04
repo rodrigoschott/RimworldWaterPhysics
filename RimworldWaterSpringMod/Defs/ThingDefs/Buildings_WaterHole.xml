@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <!-- Buildable hole that serves as a vertical portal for water downflow -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Hole</defName>
+    <label>hole</label>
+    <description>A vertical opening that connects to the level below. Water adjacent to or on this tile can flow straight down if a lower level exists.</description>
+    <category>Building</category>
+    <building>
+      <isEdifice>true</isEdifice>
+      <preventRoofAttach>true</preventRoofAttach>
+    </building>
+  <thingClass>WaterSpringMod.WaterSpring.Building_WSHole</thingClass>
+    <altitudeLayer>BuildingOnTop</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+  <passability>PassThroughOnly</passability>
+    <fillPercent>0</fillPercent>
+    <coversFloor>false</coversFloor>
+    <pathCost>0</pathCost>
+    <constructionSkillPrerequisite>0</constructionSkillPrerequisite>
+  <designationCategory>Structure</designationCategory>
+  <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <costList>
+      <Steel>5</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>200</WorkToBuild>
+      <MaxHitPoints>40</MaxHitPoints>
+      <Flammability>0.5</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/WS_Hole</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+  </ThingDef>
+</Defs>

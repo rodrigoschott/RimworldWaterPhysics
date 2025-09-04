@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- pipe connector Rimefeller and VEF -->
+	<!-- EN: Linked with: {0} -->
+    <MF_PipeConnectorLinkedWith>链接层: {0}</MF_PipeConnectorLinkedWith>
+	<!-- EN: Build upper -->
+    <MF_BuildUpperPipeConnector>上层蓝图</MF_BuildUpperPipeConnector>
+	<!-- EN: Place a blueprint of a pipe connector on the upper level. -->
+    <MF_BuildUpperPipeConnectorDesc>在上层的相同位置放置蓝图，连接后可以将管道中的资源在楼层间转移。</MF_BuildUpperPipeConnectorDesc>
+	<!-- EN: Link upper -->
+    <MF_LinkUpperPipeConnector>链接上层</MF_LinkUpperPipeConnector>
+	<!-- EN: Link current connector with the one on the upper level. So they can transmit resources between each other. -->
+    <MF_LinkUpperPipeConnectorDesc>将当前转接口与上层相连，资源可在两者间单向流动。</MF_LinkUpperPipeConnectorDesc>
+	<!-- EN: Build lower -->
+    <MF_BuildLowerPipeConnector>下层蓝图</MF_BuildLowerPipeConnector>
+	<!-- EN: Place a blueprint of a pipe connector on the lower level. -->
+    <MF_BuildLowerPipeConnectorDesc>在下层的相同位置放置蓝图，连接后可以将管道中的资源在楼层间转移。</MF_BuildLowerPipeConnectorDesc>
+	<!-- EN: Link lower -->
+    <MF_LinkLowerPipeConnector>链接下层</MF_LinkLowerPipeConnector>
+	<!-- EN: Link current connector with the one on the lower level. So they can transmit resources between each other. -->
+    <MF_LinkLowerPipeConnectorDesc>将当前转接口与下层相连，资源可在两者间单向流动。</MF_LinkLowerPipeConnectorDesc>
+	<!-- EN: No pipe connector to link. -->
+    <MF_CannotFindPipeConnectorToLink>无可链接的转接口。</MF_CannotFindPipeConnectorToLink>
+	<!-- EN: Exporting -->
+    <MF_PipeConnectorExporting>输出端</MF_PipeConnectorExporting>
+	<!-- EN: If toggle, the connector will transmit resources to linked connector on other level. Otherwise, it receive resources from others. -->
+    <MF_PipeConnectorExportingDesc>输出端会将本层的资源输出到另一层的转接口；接收端会将接收到的资源输出到连接的管道网络中。</MF_PipeConnectorExportingDesc>
+	<!-- EN: Stop -->
+    <MF_StopPipeConnector>停止</MF_StopPipeConnector>
+	<!-- EN: Stop transmission. -->
+    <MF_StopPipeConnectorDesc>停止后不再转送到或从另一层接收资源。</MF_StopPipeConnectorDesc>
+	
+	<!-- VEF pipe system, what a mess -->
+	<!-- EN: Set resource to transmit -->
+    <MF_SetPipeNetDef>设置管道资源</MF_SetPipeNetDef>
+	<!-- EN: Select which resource the connector should transmit. -->
+    <MF_SetPipeNetDefDesc>设置需要转运的资源</MF_SetPipeNetDefDesc>
+	<!-- EN: Resource set to {0}. -->
+    <MF_SetPipeNetDefTo>管道资源设置为{0}。</MF_SetPipeNetDefTo>
+	<!-- EN: Connected to pipe net of {0}. -->
+    <MF_ConnectedToPipeNetWithDef>成功连接到{0}的管道网络。</MF_ConnectedToPipeNetWithDef>
+	<!-- EN: Cannot find nearby pipe net of {0}. -->
+    <MF_CannotFindPipeNetWithDef>附近无可供连接的{0}管道网络。</MF_CannotFindPipeNetWithDef>
+	<!-- EN: Reconnect -->
+    <MF_ReconnectToPipeNet>重新连接</MF_ReconnectToPipeNet>
+	<!-- EN: Reconnect to a nearby pipe net after you modify it. -->
+    <MF_ReconnectToPipeNetDesc>修改了管道网络后需要重新连接。</MF_ReconnectToPipeNetDesc>
+	<!-- EN: Not working: set resource first. -->
+    <MF_NoPipeNetDef>无法工作：未设置转运资源。</MF_NoPipeNetDef>
+	<!-- EN: Current resource: {0} -->
+    <MF_CurrentPipeNetDef>当前管道资源: {0}</MF_CurrentPipeNetDef>
+	<!-- EN: Not working: not connected to any pipe net. -->
+    <MF_NotConnectedToPipeNet>无法工作：未连接到管道网络。</MF_NotConnectedToPipeNet>
+	<!-- EN: Not working: exporter connected to an empty pipe net. Please reconnect it to a pipe net of {0} with containers. -->
+    <MF_ConnectedToEmptyPipeNet>无法工作：输出端连接到的管道网络无可用资源。请将其连接到储存有{0}的管道网络中。</MF_ConnectedToEmptyPipeNet>
+	<!-- EN: Not working: link with another pipe connector first. -->
+    <MF_NotLinkedWithPipeConnector>无法工作：请先与另一管道转接口链接。</MF_NotLinkedWithPipeConnector>
+	<!-- EN: Not working: linked pipe connector not connected to pipe net. -->
+    <MF_LinkedPipeConnectorNotConnectedToPipeNet>无法工作：链接的管道转接口未连接到管道网络。</MF_LinkedPipeConnectorNotConnectedToPipeNet>
+	<!-- EN: Resource available in exporter net: {0} -->
+    <MF_ExporterPipeNetStorage>输出端可用资源: {0}</MF_ExporterPipeNetStorage>
+	<!-- EN: Not working: no container in receiver pipe net. -->
+    <MF_NoContainerInReceiverNet>无法工作：接收端无储存容器。</MF_NoContainerInReceiverNet>
+	<!-- EN: Capacity of receiver net: {0} -->
+    <MF_ReceiverNetCapacity>接收端容量：{0}</MF_ReceiverNetCapacity>
+	<!-- EN: Set flow rate to {0} (every 250 ticks) -->
+    <MF_PipeConnectorSetFlowRate>设置传输速度至{0}（每250tick）</MF_PipeConnectorSetFlowRate>
+	<!-- EN: Rate -->
+    <MF_SetFlowRate>传输速度</MF_SetFlowRate>
+	<!-- EN: Configure the transmission speed. -->
+    <MF_SetFlowRateDesc>设置传输速度。</MF_SetFlowRateDesc>
+	<!-- EN: Flow rate: {0} -->
+    <MF_PipeConnectorFlowRate>传输速度：{0}</MF_PipeConnectorFlowRate>
+</LanguageData>

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<!-- pipe connector Rimefeller and VEF -->
+	<MF_PipeConnectorLinkedWith>Linked with: {0}</MF_PipeConnectorLinkedWith>
+	<MF_BuildUpperPipeConnector>Build upper</MF_BuildUpperPipeConnector>
+	<MF_BuildUpperPipeConnectorDesc>Place a blueprint of a pipe connector on the upper level.</MF_BuildUpperPipeConnectorDesc>
+	<MF_LinkUpperPipeConnector>Link upper</MF_LinkUpperPipeConnector>
+	<MF_LinkUpperPipeConnectorDesc>Link current connector with the one on the upper level. So they can transmit resources between each other.</MF_LinkUpperPipeConnectorDesc>
+	<MF_BuildLowerPipeConnector>Build lower</MF_BuildLowerPipeConnector>
+	<MF_BuildLowerPipeConnectorDesc>Place a blueprint of a pipe connector on the lower level.</MF_BuildLowerPipeConnectorDesc>
+	<MF_LinkLowerPipeConnector>Link lower</MF_LinkLowerPipeConnector>
+	<MF_LinkLowerPipeConnectorDesc>Link current connector with the one on the lower level. So they can transmit resources between each other.</MF_LinkLowerPipeConnectorDesc>
+	<MF_CannotFindPipeConnectorToLink>No pipe connector to link.</MF_CannotFindPipeConnectorToLink>
+	<MF_PipeConnectorExporting>Exporting</MF_PipeConnectorExporting>
+	<MF_PipeConnectorExportingDesc>If toggle, the connector will transmit resources to linked connector on other level. Otherwise, it receive resources from others.</MF_PipeConnectorExportingDesc>
+	<MF_StopPipeConnector>Stop</MF_StopPipeConnector>
+	<MF_StopPipeConnectorDesc>Stop transmission.</MF_StopPipeConnectorDesc>
+	
+	<!-- VEF pipe system, what a mess -->
+	<MF_SetPipeNetDef>Set resource to transmit</MF_SetPipeNetDef>
+	<MF_SetPipeNetDefDesc>Select which resource the connector should transmit.</MF_SetPipeNetDefDesc>
+	<MF_SetPipeNetDefTo>Resource set to {0}.</MF_SetPipeNetDefTo>
+	<MF_ConnectedToPipeNetWithDef>Connected to pipe net of {0}.</MF_ConnectedToPipeNetWithDef>
+	<MF_CannotFindPipeNetWithDef>Cannot find nearby pipe net of {0}.</MF_CannotFindPipeNetWithDef>
+	<MF_ReconnectToPipeNet>Reconnect</MF_ReconnectToPipeNet>
+	<MF_ReconnectToPipeNetDesc>Reconnect to a nearby pipe net after you modify it.</MF_ReconnectToPipeNetDesc>
+	<MF_NoPipeNetDef>Not working: set resource first.</MF_NoPipeNetDef>
+	<MF_CurrentPipeNetDef>Current resource: {0}</MF_CurrentPipeNetDef>
+	<MF_NotConnectedToPipeNet>Not working: not connected to any pipe net.</MF_NotConnectedToPipeNet>
+	<MF_ConnectedToEmptyPipeNet>Not working: exporter connected to an empty pipe net. Please reconnect it to a pipe net of {0} with containers.</MF_ConnectedToEmptyPipeNet>
+	<MF_NotLinkedWithPipeConnector>Not working: link with another pipe connector first.</MF_NotLinkedWithPipeConnector>
+	<MF_LinkedPipeConnectorNotConnectedToPipeNet>Not working: linked pipe connector not connected to pipe net.</MF_LinkedPipeConnectorNotConnectedToPipeNet>
+	<MF_ExporterPipeNetStorage>Resource available in exporter net: {0}</MF_ExporterPipeNetStorage>
+	<MF_NoContainerInReceiverNet>Not working: no container in receiver pipe net.</MF_NoContainerInReceiverNet>
+	<MF_ReceiverNetCapacity>Capacity of receiver net: {0}</MF_ReceiverNetCapacity>
+	<MF_PipeConnectorSetFlowRate>Set flow rate to {0} (every 250 ticks)</MF_PipeConnectorSetFlowRate>
+	<MF_SetFlowRate>Rate</MF_SetFlowRate>
+	<MF_SetFlowRateDesc>Configure the transmission speed.</MF_SetFlowRateDesc>
+	<MF_PipeConnectorFlowRate>Flow rate: {0}</MF_PipeConnectorFlowRate>
+</LanguageData>

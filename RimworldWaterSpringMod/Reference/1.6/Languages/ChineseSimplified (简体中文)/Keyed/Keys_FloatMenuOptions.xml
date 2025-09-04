@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- stairs -->
+	<!-- EN: Go to: {0} -->
+    <MF_GoToLevel>前往: {0}</MF_GoToLevel>
+
+	<!-- haul across level designator -->
+	<!-- EN: Haul to {0} -->
+    <MF_DesignatorHaulTo>搬运到{0}</MF_DesignatorHaulTo>
+	<!-- EN: Haul to -->
+    <MF_DesignatorHaulToDestMapLabel>搬运到</MF_DesignatorHaulToDestMapLabel>
+	<!-- EN: Mark items to be hauled to a specific level. -->
+    <MF_DesignatorHaulToDestMapDesc>标记需要搬运到特定层的物品。</MF_DesignatorHaulToDestMapDesc>
+	<!-- EN: Must select destination through right click options first. -->
+    <MF_MustSelectTargetViaRightClickFirst>请先通过右键按钮设置目标楼层。</MF_MustSelectTargetViaRightClickFirst>
+	
+	<!-- pawns -->
+	<!-- EN: Transfer {1_label} to {2} -->
+    <MF_TransferEntityTo>移送{1_label}到{2}</MF_TransferEntityTo>
+	<!-- EN: Rescue {1_labelShort} to ... -->
+    <MF_RescueTo>救援{1_labelShort}到...</MF_RescueTo>
+	<!-- EN: Return slave {1_labelShort} to ... -->
+    <MF_ReturnToSlaveBed>救援奴隶{1_labelShort}到...</MF_ReturnToSlaveBed>
+	<!-- EN: Capture {1_labelShort} to ... -->
+    <MF_CaptureTo>俘虏{1_labelShort}到...</MF_CaptureTo>
+	<!-- EN: Arrest {1_labelShort} to ... -->
+    <MF_ArrestTo>逮捕{1_labelShort}到...</MF_ArrestTo>
+	<!-- EN: Rescue {1_labelShort} to {2} -->
+    <MF_RescueToLevel>救援{1_labelShort}到{2}</MF_RescueToLevel>
+	<!-- EN: Return slave {1_labelShort} to {2} -->
+    <MF_ReturnToSlaveBedOnLevel>救援奴隶{1_labelShort}到{2}</MF_ReturnToSlaveBedOnLevel>
+	<!-- EN: Capture {1_labelShort} to {2} -->
+    <MF_CaptureToLevel>俘虏{1_labelShort}到{2}</MF_CaptureToLevel>
+	<!-- EN: Arrest {1_labelShort} to {2} -->
+    <MF_ArrestToLevel>逮捕{1_labelShort}到{2}</MF_ArrestToLevel>
+	<!-- EN: Owners: {0} -->
+    <MF_BedOwners>床位拥有者: {0}</MF_BedOwners>
+	<!-- EN: No owner -->
+    <MF_BedNoOwners>床位空闲</MF_BedNoOwners>
+	<!-- EN: No appropriate bed on this level. -->
+    <MF_NoAppropriateBedOnCurrentLevel>该层没有合适的床位。</MF_NoAppropriateBedOnCurrentLevel>
+</LanguageData>

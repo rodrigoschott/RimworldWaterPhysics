@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = WaterSpringMod
-build_property.ProjectDir = f:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\
+build_property.ProjectDir = F:\.Net\Mods\WaterPhysics\RimworldWaterSpringMod\Source\WaterSpringMod\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false

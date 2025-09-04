@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "C9PWB6JpATE=",
+  "dgSpecHash": "KztEp8kF6Vs=",
   "success": true,
-  "projectFilePath": "f:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
+  "projectFilePath": "F:\\.Net\\Mods\\WaterPhysics\\RimworldWaterSpringMod\\Source\\WaterSpringMod\\WaterSpringMod.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rodri\\.nuget\\packages\\krafs.rimworld.ref\\1.6.4566\\krafs.rimworld.ref.1.6.4566.nupkg.sha512",
     "C:\\Users\\rodri\\.nuget\\packages\\lib.harmony\\2.2.2\\lib.harmony.2.2.2.nupkg.sha512"

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Defs>
+
+	<TerrainDef ParentName="MF_SurfaceStonyRoofedFoundation">
+		<defName>MF_SurfaceStonyRoofedFoundationVacstone</defName>
+		<label>supported vacstone foundation</label>
+		<description>A vacstone platform built atop the roof of a lower level. It distributes weight and stabilizes the surface, making it safe to construct buildings and additional flooring above. If it breaks, buildings on top of it fall to the lower level.</description>
+        <color>(115, 106, 98)</color>
+		<costList>
+			<BlocksVacstone>4</BlocksVacstone>
+		</costList>
+	</TerrainDef>
+
+</Defs>

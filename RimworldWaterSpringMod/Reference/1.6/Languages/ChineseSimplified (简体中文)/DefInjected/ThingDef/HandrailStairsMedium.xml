@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: Z-shaped medium handrail stairs down  -->
+    <MF_HandrailStairsMDownA.label>Z字形中型扶手楼梯（下）</MF_HandrailStairsMDownA.label>
+    <!-- EN: Moderately wide stairs with sturdy handrails leading to a lower level. Cannot be built on upper levels. -->
+    <MF_HandrailStairsMDownA.description>中等宽度的楼梯，有坚固的扶手，通往下层。在二层及以上无法建造。</MF_HandrailStairsMDownA.description>
+    
+    <!-- EN: medium handrail stairs down -->
+    <MF_HandrailStairsMDownAFlipped.label>中型扶手楼梯（下）</MF_HandrailStairsMDownAFlipped.label>
+    <!-- EN: Moderately wide stairs with sturdy handrails leading to a lower level. Cannot be built on upper levels. -->
+    <MF_HandrailStairsMDownAFlipped.description>中等宽度的楼梯，有坚固的扶手，通往下层。在二层及以上无法建造。</MF_HandrailStairsMDownAFlipped.description>
+    
+    <!-- EN: medium handrail stairs exit -->
+    <MF_HandrailStairsMExitA.label>中型扶手楼梯出口</MF_HandrailStairsMExitA.label>
+    <!-- EN: The endpoint of a medium handrail stairs. -->
+    <MF_HandrailStairsMExitA.description>中型扶手楼梯的出口。</MF_HandrailStairsMExitA.description>
+    
+    <!-- EN: medium handrail stairs exit -->
+    <MF_HandrailStairsMExitAFlipped.label>中型扶手楼梯出口</MF_HandrailStairsMExitAFlipped.label>
+    <!-- EN: The endpoint of a medium handrail stairs. -->
+    <MF_HandrailStairsMExitAFlipped.description>中型扶手楼梯的出口。</MF_HandrailStairsMExitAFlipped.description>
+    
+    <!-- EN: Z-shaped medium handrail stairs up  -->
+    <MF_HandrailStairsMUpA.label>Z字形中型扶手楼梯（上）</MF_HandrailStairsMUpA.label>
+    <!-- EN: Moderately wide stairs with sturdy handrails for ascending to a higher level. Requires an indoor, roofed room. Cannot be built underground. -->
+    <MF_HandrailStairsMUpA.description>中等宽度的楼梯，有坚固的扶手，通往高层。需要建造在盖满屋顶的室内房间，在地下无法建造。</MF_HandrailStairsMUpA.description>
+    
+    <!-- EN: medium handrail stairs up -->
+    <MF_HandrailStairsMUpAFlipped.label>中型扶手楼梯（上）</MF_HandrailStairsMUpAFlipped.label>
+    <!-- EN: Moderately wide stairs with sturdy handrails for ascending to a higher level. Requires an indoor, roofed room. Cannot be built underground. -->
+    <MF_HandrailStairsMUpAFlipped.description>中等宽度的楼梯，有坚固的扶手，通往高层。需要建造在盖满屋顶的室内房间，在地下无法建造。</MF_HandrailStairsMUpAFlipped.description>
+    
+</LanguageData>

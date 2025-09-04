@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- EN: Must be built on the same cell as grav engine. -->
+    <MF_MustBeBuiltOnGroundGravEngineCell>需要建造在逆重引擎位置的上方。</MF_MustBeBuiltOnGroundGravEngineCell>
+	
+	<!-- EN: [MultiFloors] Dangling upper levels with no entrance will be deleted. Deleting them will permanently remove things on those levels and all branches from them. Proceed? -->
+    <MF_DeleteDanglingUpperLevelsOnGravshipLaunch>[多层]检测到孤立的上层地图，将会删除该地图，上面的所有物体和分支出的子地图将永远消失。确认删除吗？</MF_DeleteDanglingUpperLevelsOnGravshipLaunch>
+</LanguageData>

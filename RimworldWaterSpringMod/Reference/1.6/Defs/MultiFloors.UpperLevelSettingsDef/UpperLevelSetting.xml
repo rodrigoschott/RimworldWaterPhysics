@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<MultiFloors.UpperLevelSettingsDef>
+		<defName>MF_UpperLevelSettings</defName>
+		<!-- terrains used when generating upper levels on different planet layers -->
+		<!-- key is PlanetLayerDef, value contains TerrainDefs -->
+		<!-- length of two lists must match to build the dictionary-->
+		<layers>
+			<li>Surface</li>
+			<li MayRequire="Ludeon.RimWorld.Odyssey">Orbit</li>
+		</layers>
+		<settings>
+			<li>
+				<mapGenerator>MF_SurfaceUpperLevel</mapGenerator>
+				<defaultTerrain>MF_SurfaceStonyRoofedFoundationMarble</defaultTerrain>
+				<deckTerrain MayRequire="Ludeon.RimWorld.Odyssey">Substructure</deckTerrain>
+				<voidTerrain>MF_SurfaceVoid</voidTerrain>
+			</li>
+			<li MayRequire="Ludeon.RimWorld.Odyssey">
+				<mapGenerator>MF_SpaceUpperLevel</mapGenerator>
+				<defaultTerrain>MF_SurfaceStonyRoofedFoundationVacstone</defaultTerrain>
+				<deckTerrain>Substructure</deckTerrain>
+				<voidTerrain>MF_SpaceVoid</voidTerrain>
+			</li>
+		</settings>
+		<!-- fallback terrains if key not found in settings -->
+		<fallback>
+			<mapGenerator>MF_SurfaceUpperLevel</mapGenerator>
+			<defaultTerrain>MF_SurfaceStonyRoofedFoundationMarble</defaultTerrain>
+			<deckTerrain MayRequire="Ludeon.RimWorld.Odyssey">Substructure</deckTerrain>
+			<voidTerrain>MF_SurfaceVoid</voidTerrain>
+		</fallback>
+		<!-- should render things beneath -->
+		<transparentTerrains>
+			<li>MF_SurfaceVoid</li>
+			<li>MF_SpaceVoid</li>
+			<li>MF_TransparentFoundation</li>
+		</transparentTerrains>
+	</MultiFloors.UpperLevelSettingsDef>
+</Defs>

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+    
+    <!-- EN: Z-shaped medium brick stairs down -->
+    <MF_BrickStairsMDownA.label>Z字形中型砖制楼梯（下）</MF_BrickStairsMDownA.label>
+    <!-- EN: A set of medium-width brick stairs leading down. Built to last and adds a touch of style. Cannot be built on upper levels. -->
+    <MF_BrickStairsMDownA.description>中等宽度的砖制楼梯，通往下层，耐用美观。在二层及以上无法建造。</MF_BrickStairsMDownA.description>
+    
+    <!-- EN: medium brick stairs down -->
+    <MF_BrickStairsMDownAFlipped.label>中型砖制楼梯（下）</MF_BrickStairsMDownAFlipped.label>
+    <!-- EN: A set of medium-width brick stairs leading down. Built to last and adds a touch of style. Cannot be built on upper levels. -->
+    <MF_BrickStairsMDownAFlipped.description>中等宽度的砖制楼梯，通往下层，耐用美观。在二层及以上无法建造。</MF_BrickStairsMDownAFlipped.description>
+    
+    <!-- EN: medium brick stairs exit -->
+    <MF_BrickStairsMExitA.label>中型砖制楼梯出口</MF_BrickStairsMExitA.label>
+    <!-- EN: The endpoint of a set of medium brick stairs. -->
+    <MF_BrickStairsMExitA.description>中型砖制楼梯的出口。</MF_BrickStairsMExitA.description>
+    
+    <!-- EN: medium brick stairs exit -->
+    <MF_BrickStairsMExitAFlipped.label>中型砖制楼梯出口</MF_BrickStairsMExitAFlipped.label>
+    <!-- EN: The endpoint of a set of medium brick stairs. -->
+    <MF_BrickStairsMExitAFlipped.description>中型砖制楼梯的出口。</MF_BrickStairsMExitAFlipped.description>
+    
+    <!-- EN: Z-shaped medium brick stairs up -->
+    <MF_BrickStairsMUpA.label>Z字形中型砖制楼梯（上）</MF_BrickStairsMUpA.label>
+    <!-- EN: A set of medium-width brick stairs designed for ascending. Durable and aesthetically pleasing. Requires an indoor, roofed room. Cannot be built underground. -->
+    <MF_BrickStairsMUpA.description>中等宽度的砖制楼梯，通往高层，耐用美观。需要盖满屋顶的室内房间，在地下无法建造。</MF_BrickStairsMUpA.description>
+    
+    <!-- EN: medium brick stairs up -->
+    <MF_BrickStairsMUpAFlipped.label>中型砖制楼梯（上）</MF_BrickStairsMUpAFlipped.label>
+    <!-- EN: A set of medium-width brick stairs designed for ascending. Durable and aesthetically pleasing. Requires an indoor, roofed room. Cannot be built underground. -->
+    <MF_BrickStairsMUpAFlipped.description>中等宽度的砖制楼梯，通往高层，耐用美观。需要盖满屋顶的室内房间，在地下无法建造。</MF_BrickStairsMUpAFlipped.description>
+    
+</LanguageData>

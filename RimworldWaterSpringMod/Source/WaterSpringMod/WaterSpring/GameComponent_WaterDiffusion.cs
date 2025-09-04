@@ -280,6 +280,8 @@ namespace WaterSpringMod.WaterSpring
         public void ActivateNeighbors(Map map, IntVec3 position)
         {
             if (map == null || !Settings.useActiveTileSystem) return;
+            // First, propagate vertical reactivation across portals if this cell or its cardinals is a hole
+            VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(map, position);
             
             // Check all 4 cardinal directions
             foreach (IntVec3 offset in GenAdj.CardinalDirections)
@@ -410,6 +412,8 @@ namespace WaterSpringMod.WaterSpring
         public void NotifyTerrainChanged(Map map, IntVec3 position)
         {
             if (map == null) return;
+            // Vertical wake for this location and its cardinals when terrain changes (doors, walls, etc.)
+            VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(map, position);
             
             // Check all 8 adjacent cells
             foreach (IntVec3 offset in GenAdj.AdjacentCellsAndInside)

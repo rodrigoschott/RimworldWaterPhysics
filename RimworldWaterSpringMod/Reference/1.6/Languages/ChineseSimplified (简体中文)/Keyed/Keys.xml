@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<!-- EN: Multi-Floors -->
+    <MultiFloors>多层</MultiFloors>
+	
+	<!-- EN: G -->
+    <MF_GroundLevelSymbol>地面</MF_GroundLevelSymbol>
+	<!-- EN: L{0} -->
+    <MF_UpperLevelSymbol>{0}楼</MF_UpperLevelSymbol>
+	<!-- EN: B{0} -->
+    <MF_BasementLevelSymbol>负{0}</MF_BasementLevelSymbol>
+	
+	<!-- pawn columns -->
+	<!-- EN: Following works would be scanned on pawn's current level, then other levels\n -->
+    <MF_HighPriorityWorkGiverTypes>以下工作会优先检索，先检索当前层，再到其他层：\n</MF_HighPriorityWorkGiverTypes>
+	<!-- EN: If not found, following works would be scanned on pawn's current level, then other levels\n -->
+    <MF_LowPriorityWorkGiverTypes>若无可用工作，再检索以下类型，顺序同上：\n</MF_LowPriorityWorkGiverTypes>
+	
+	<!-- EN: Level -->
+    <MF_LevelWorkSettingsHeader>楼层</MF_LevelWorkSettingsHeader>
+	<!-- EN: Level work settings -->
+    <MF_LevelWorkSettingsEntryButtonLabel>工作设置</MF_LevelWorkSettingsEntryButtonLabel>
+	<!-- EN: You can turn off some work types on each level. Once you turned them off, pawns won't do works of those types. This will help to improve performance but use them carefully. -->
+    <MF_LevelWorkSettingsEntryButtonTooltip>可以在这里关掉每层的某类型工作，关掉后在该层将不会搜索该类型的所有工作，设置得当可以改善性能。</MF_LevelWorkSettingsEntryButtonTooltip>
+</LanguageData>

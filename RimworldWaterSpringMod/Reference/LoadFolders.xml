@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<loadFolders>
+	<v1.6>
+		<li>1.6</li>
+		<li>/</li>
+		<li IfModActive="Ludeon.Rimworld.Ideology">1.6/ModCompat/Ideology</li>
+		<li IfModActive="Ludeon.Rimworld.Anomaly">1.6/ModCompat/Anomaly</li>
+		<li IfModActive="Ludeon.Rimworld.Odyssey">1.6/ModCompat/Odyssey</li>
+		<li IfModActive="Orion.Hospitality">1.6/ModCompat/Hospitality</li>
+		<li IfModActive="dhultgren.smarterconstruction">1.6/ModCompat/SmarterConstruction</li>
+		<li IfModActive="Dubwise.Rimefeller">1.6/ModCompat/Rimefeller</li>
+		<li IfModActive="oskarpotocki.vanillafactionsexpanded.core">1.6/ModCompat/VEF</li>
+		<li IfModActive="SmashPhil.VehicleFramework">1.6/ModCompat/Vehicle</li>
+		<li IfModActive="PeteTimesSix.ResearchReinvented.SteppingStones">1.6/ModCompat/ResearchReinvented</li>
+		<li IfModActive="wvc.sergkart.biotech.MoreMechanoidsWorkModes">1.6/ModCompat/WVCWorkModes</li>
+		<li IfModActive="spdskatr.projectrimfactory">1.6/ModCompat/ProjectRimfactory</li>
+		<li IfModActive="Dubwise.DubsCentralHeating">1.6/ModCompat/DubsCentralHeating</li>
+		<li IfModActive="Dubwise.DubsBadHygiene">1.6/ModCompat/DubsBadHygiene</li>
+	</v1.6>
+</loadFolders>

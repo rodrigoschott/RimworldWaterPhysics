@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<!-- general and foundation -->
+	<MF_UnbuildableOnUpperLevels>Can't be built on upper levels.</MF_UnbuildableOnUpperLevels>
+	<MF_OnlyBuildableOnUpperLevels>Can only be built on upper levels.</MF_OnlyBuildableOnUpperLevels>
+	<MF_MustBeBuiltOnTopOfRoof>Must be built on top of roof.</MF_MustBeBuiltOnTopOfRoof>
+	
+	<!-- stair place worker -->
+	<MF_RoomTooSmall>Room size is too small. Must be at least {0} cells.</MF_RoomTooSmall>
+	<MF_MustBeBuiltIndoor>Must be built indoor and under the roof.</MF_MustBeBuiltIndoor>
+	<MF_CantBuildUpStairInBasement>Can't build upstairs in basement.</MF_CantBuildUpStairInBasement>
+	<MF_CantBuildUpStairWithoutRoof>Can't build upstairs without roof.</MF_CantBuildUpStairWithoutRoof>
+	<MF_CantBuildDownStairAboveGround>Can't build downstairs on upper levels.</MF_CantBuildDownStairAboveGround>
+	<MF_CantBuildDownStairInCurrentBiome>Can't build downstairs in current biome.</MF_CantBuildDownStairInCurrentBiome>
+	<MF_PotentialElevatorToLink>Can be linked with:</MF_PotentialElevatorToLink>
+	<MF_NoElevatorToLinkWith>No elevator can be linked.</MF_NoElevatorToLinkWith>
+</LanguageData>

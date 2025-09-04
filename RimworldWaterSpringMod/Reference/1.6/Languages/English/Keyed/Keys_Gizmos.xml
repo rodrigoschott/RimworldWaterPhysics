@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<!-- haul across level designator -->
+	<MF_DesignatorHaulTo>Haul to {0}</MF_DesignatorHaulTo>
+	<MF_DesignatorHaulToDestMapLabel>Haul to</MF_DesignatorHaulToDestMapLabel>
+	<MF_DesignatorHaulToDestMapDesc>Mark items to be hauled to a specific level.</MF_DesignatorHaulToDestMapDesc>
+	<MF_MustSelectTargetViaRightClickFirst>Must select destination through right click options first.</MF_MustSelectTargetViaRightClickFirst>
+	
+	<MF_StayOnCurrentMapToggle>Lock floor</MF_StayOnCurrentMapToggle>
+	<MF_StayOnCurrentMapToggleDesc>Pawns wouldn't search for jobs or switch to other levels when toggle on.</MF_StayOnCurrentMapToggleDesc>
+	
+	<MF_GatherPawnsCommand>Gather</MF_GatherPawnsCommand>
+	<MF_GatherPawnsCommandDesc>Call colonists to move to the current spot.</MF_GatherPawnsCommandDesc>
+	<MF_GatherPawnsSelected>Selected:</MF_GatherPawnsSelected>
+	<MF_GatherPawnsAllCandidates>Candidates:</MF_GatherPawnsAllCandidates>
+	<MF_GatherPawns_CancelButtonLabel>Cancel</MF_GatherPawns_CancelButtonLabel>
+	<MF_GatherPawns_AcceptButtonLabel>Gather</MF_GatherPawns_AcceptButtonLabel>
+	<MF_GatherPawns_AddAllButtonLabel>Select/Deselect All</MF_GatherPawns_AddAllButtonLabel>
+    <MF_GatherPawns_AddPrevSelectedButtonLabel>Select/Deselect Prev.</MF_GatherPawns_AddPrevSelectedButtonLabel>
+</LanguageData>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Defs>
+	<!-- move -->
+	<JobDef>
+		<defName>MF_ChangeLevelThroughStair</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_ChangeLevelThroughStair</driverClass>
+		<reportString>changing level</reportString>
+		<!-- so pawns can keep carried things -->
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- haul to fill blueprint or frame -->
+	<JobDef>
+		<defName>MF_DeliverResourcesAcrossLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_DeliverResourcesAcrossLevel</driverClass>
+		<reportString>delivering resources across level</reportString>
+		<!-- so pawns can keep carried things -->
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	<!-- fill blueprint or frame on destination level -->
+	<JobDef>
+		<defName>MF_DeliverToContainer</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_DeliverToContainer</driverClass>
+		<reportString>delivering</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- haul designated things to destination map with inventory -->
+	<JobDef>
+		<defName>MF_HaulDesignatedThingToDestMap</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_HaulToOtherLevel</driverClass>
+		<reportString>hauling across level</reportString>
+		<!-- so pawns can keep carried things -->
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	<!-- unload picked up things on destination level -->
+	<JobDef>
+		<defName>MF_UnloadInventory</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_UnloadInventory</driverClass>
+		<reportString>unloading</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>false</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- capture downed entity to selected platform, from float menu option -->
+	<JobDef>
+		<defName>MF_CaptureEntityAcrossLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_CaptureEntityAcrossLevel</driverClass>
+		<reportString>capturing entity across level</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- transfer entity to selected platform, from CompTransferEntity's float menu option -->
+	<JobDef>
+		<defName>MF_TransferEntityAcrossLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TransferEntityAcrossLevel</driverClass>
+		<reportString>transferring entity across level</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- enemy - steal -->
+	<JobDef>
+		<defName>MF_TakeToGround</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TakeToGround</driverClass>
+		<reportString>carrying {0} to ground</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- enemy - kidnap -->
+	<JobDef>
+		<defName>MF_TakeKidnapeeToGround</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TakeKidnapeeToGround</driverClass>
+		<reportString>kidnapping {0}</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<JobDef>
+		<defName>MF_FixBrokenDownBuildingAcrossLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_FixBrokenDownAcrossLevel</driverClass>
+		<reportString>fixing broken-down building</reportString>
+		<!-- so pawns can keep carried things -->
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	<JobDef>
+		<defName>MF_FixBrokenDownBuilding</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_FixBrokenDownBuilding</driverClass>
+		<reportString>fixing broken-down building</reportString>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	
+	<!-- carry pawn to selected bed, from float menu options -->
+	<JobDef>
+		<defName>MF_RescueToOtherLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TakeToBedOnOtherLevel</driverClass>
+		<reportString>rescuing TargetA.</reportString>
+		<casualInterruptible>false</casualInterruptible>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	<JobDef>
+		<defName>MF_CaptureToOtherLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TakeToBedOnOtherLevel</driverClass>
+		<reportString>capturing TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+	<JobDef>
+		<defName>MF_ArrestToOtherLevel</defName>
+		<driverClass>MultiFloors.Jobs.JobDriver_TakeToBedOnOtherLevel</driverClass>
+		<reportString>arresting TargetA.</reportString>
+		<alwaysShowWeapon>true</alwaysShowWeapon>
+		<makeTargetPrisoner>true</makeTargetPrisoner>
+		<casualInterruptible>false</casualInterruptible>
+		<dropThingBeforeJob>false</dropThingBeforeJob>
+		<carryThingAfterJob>true</carryThingAfterJob>
+	</JobDef>
+</Defs>

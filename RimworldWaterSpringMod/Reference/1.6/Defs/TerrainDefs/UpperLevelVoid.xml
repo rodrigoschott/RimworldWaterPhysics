@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Defs>
+	<TerrainDef ParentName="MF_VoidTerrainBase">
+		<defName>MF_SurfaceVoid</defName>
+		<label>unsupported areas</label>
+	</TerrainDef>
+</Defs>
