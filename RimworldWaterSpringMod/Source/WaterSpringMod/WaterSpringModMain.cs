@@ -198,20 +198,6 @@ namespace WaterSpringMod
                     listingStandard.Gap(4f);
                     _tmpContent.text = "The random wait applied to individual tiles between diffusion attempts in the normal path."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
 
-                    // Anti-backflow controls
-                    listingStandard.Gap();
-                    listingStandard.CheckboxLabeled("Anti-backflow (reduce ping-pong)", ref settings.antiBackflowEnabled,
-                        "Discourage immediate backflow into the cell that just sent water. Adds a temporary extra diff requirement.");
-                    if (settings.antiBackflowEnabled)
-                    {
-                        LabelDynamicInt(listingStandard, "Backflow Cooldown: ", settings.backflowCooldownTicks, " ticks",
-                            tooltip: "Window after outbound flow during which backflow is discouraged.");
-                        settings.backflowCooldownTicks = (int)listingStandard.Slider(settings.backflowCooldownTicks, 0, 600);
-                        LabelDynamicInt(listingStandard, "Backflow Min-Diff Bonus: +", settings.backflowMinDiffBonus, null,
-                            tooltip: "Extra volume difference required to allow backflow during cooldown. 0 disables the penalty.");
-                        settings.backflowMinDiffBonus = (int)listingStandard.Slider(settings.backflowMinDiffBonus, 0, 3);
-                    }
-
                     // Diffusion rules (Normal method)
                     listingStandard.Gap();
                     LabelCached(listingStandard, GC_S1_DiffusionRules);

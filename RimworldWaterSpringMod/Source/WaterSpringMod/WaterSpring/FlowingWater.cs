@@ -199,9 +199,6 @@ namespace WaterSpringMod.WaterSpring
     // Evaporation scheduling
     private int nextEvapCheckTick = -1;
 
-    // Anti-backflow tracking
-    private IntVec3 lastInboundFrom = IntVec3.Invalid;
-    private int backflowCooldownRemaining = 0;
     private bool isSpringSourceTile = false; // set by spring on spawn
         
         public override void ExposeData()
@@ -215,8 +212,6 @@ namespace WaterSpringMod.WaterSpring
             Scribe_Values.Look(ref previousVolume, "previousVolume", 1);
             Scribe_Values.Look(ref volumeChangeCounter, "volumeChangeCounter", 0);
             Scribe_Values.Look(ref ticksSinceLastChange, "ticksSinceLastChange", 0);
-            Scribe_Values.Look(ref lastInboundFrom, "lastInboundFrom", IntVec3.Invalid);
-            Scribe_Values.Look(ref backflowCooldownRemaining, "backflowCooldownRemaining", 0);
             Scribe_Values.Look(ref isSpringSourceTile, "isSpringSourceTile", false);
             Scribe_Values.Look(ref nextEvapCheckTick, "nextEvapCheckTick", -1);
         }

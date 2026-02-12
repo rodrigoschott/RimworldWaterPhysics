@@ -50,11 +50,6 @@ namespace WaterSpringMod
     public int localCheckIntervalMin = 30; // Default min ticks between attempts
     public int localCheckIntervalMax = 60; // Default max ticks between attempts
 
-    // Anti-backflow controls (Normal diffusion)
-    public bool antiBackflowEnabled = true; // Default: enable anti-backflow heuristics
-    public int backflowCooldownTicks = 120; // Default: 2s cooldown window where backflow is discouraged
-    public int backflowMinDiffBonus = 1; // Default: require +1 extra volume difference to flow back during cooldown
-
     // Spring behavior controls
     public bool springUseBacklog = true; // Default: enable backlog when the spring tile is full
     public int springBacklogCap = 7; // Default: store up to 7 units when blocked
@@ -121,11 +116,6 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref localCheckIntervalMin, "localCheckIntervalMin", 30);
             Scribe_Values.Look(ref localCheckIntervalMax, "localCheckIntervalMax", 60);
 
-            // Save/load anti-backflow settings
-            Scribe_Values.Look(ref antiBackflowEnabled, "antiBackflowEnabled", true);
-            Scribe_Values.Look(ref backflowCooldownTicks, "backflowCooldownTicks", 120);
-            Scribe_Values.Look(ref backflowMinDiffBonus, "backflowMinDiffBonus", 1);
-
             // Save/load spring behavior settings
             Scribe_Values.Look(ref springUseBacklog, "springUseBacklog", true);
             Scribe_Values.Look(ref springBacklogCap, "springBacklogCap", 7);
@@ -164,10 +154,6 @@ namespace WaterSpringMod
             // Local diffusion timing
             localCheckIntervalMin = Mathf.Clamp(localCheckIntervalMin, 1, 600);
             localCheckIntervalMax = Mathf.Clamp(localCheckIntervalMax, localCheckIntervalMin, 1200);
-
-            // Anti-backflow
-            backflowCooldownTicks = Mathf.Clamp(backflowCooldownTicks, 0, 3600);
-            backflowMinDiffBonus = Mathf.Clamp(backflowMinDiffBonus, 0, 3);
 
             // Transfer threshold
             minVolumeDifferenceForTransfer = Mathf.Clamp(minVolumeDifferenceForTransfer, 2, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
