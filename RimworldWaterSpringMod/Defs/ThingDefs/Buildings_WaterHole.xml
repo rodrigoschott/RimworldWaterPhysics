@@ -8,7 +8,6 @@
     <category>Building</category>
     <building>
       <isEdifice>true</isEdifice>
-      <preventRoofAttach>true</preventRoofAttach>
     </building>
   <thingClass>WaterSpringMod.WaterSpring.Building_WSHole</thingClass>
     <altitudeLayer>BuildingOnTop</altitudeLayer>

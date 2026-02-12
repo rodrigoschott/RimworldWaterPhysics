@@ -5,6 +5,7 @@ using Verse;
 
 namespace WaterSpringMod.WaterSpring
 {
+    [StaticConstructorOnStartup]
     public class FlowingWater : ThingWithComps
     {
         private int _volume = 1; // Internal volume storage
@@ -47,15 +48,31 @@ namespace WaterSpringMod.WaterSpring
                     {
                         TrySyncTerrainToVolume();
                     }
-                    if (Spawned && Map != null && !isExplicitlyDeregistered && !IsStable())
+                    if (Spawned && Map != null)
                     {
                         GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
                         if (diffusionManager != null)
                         {
+                            // Wake this tile
                             diffusionManager.RegisterActiveTile(Map, Position);
-                // Reset stability counter when volume changes (do not clear explicit deregister here)
-                ResetStabilityCounter();
-                // Note: Do NOT trigger ReactivateInRadius here to avoid re-entrant immediate transfers.
+                            ResetStabilityCounter();
+                            // Clear explicit deregister so this tile gets processed again
+                            isExplicitlyDeregistered = false;
+
+                            // DF rule: "STABLE -> FLOWING when adjacent tile changes depth"
+                            // Wake all cardinal neighbors so they can re-evaluate transfers
+                            foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                            {
+                                IntVec3 adj = Position + dir;
+                                if (!adj.InBounds(Map)) continue;
+                                FlowingWater adjWater = Map.thingGrid.ThingAt<FlowingWater>(adj);
+                                if (adjWater != null && adjWater.Spawned && !adjWater.Destroyed)
+                                {
+                                    adjWater.isExplicitlyDeregistered = false;
+                                    adjWater.ResetStabilityCounter();
+                                    diffusionManager.RegisterActiveTile(Map, adj);
+                                }
+                            }
                         }
                     }
                     
