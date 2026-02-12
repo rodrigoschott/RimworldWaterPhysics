@@ -448,32 +448,62 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Scanning adjacent cells for water at {Position}");
                 }
                 
-                // If current tile is a hole, add a straight-down candidate first
+                // GRAVITY PRIORITY: If current tile is a hole, bulk-transfer downward FIRST
                 if (VerticalPortalBridge.IsHoleAt(Map, pos))
                 {
-                    if (VerticalPortalBridge.TryGetLowerMap(Map, out var selfLower))
+                    if (VerticalPortalBridge.TryGetLowerMap(Map, out var selfLower) && pos.InBounds(selfLower))
                     {
-                        if (pos.InBounds(selfLower))
+                        FlowingWater belowWater = selfLower.thingGrid.ThingAt<FlowingWater>(pos);
+                        int belowVol = belowWater?.Volume ?? 0;
+                        int belowCapacity = MaxVolume - belowVol;
+
+                        if (belowCapacity > 0)
                         {
-                            FlowingWater selfLowerWater = selfLower.thingGrid.ThingAt<FlowingWater>(pos);
-                            validCells[validCount] = pos;
-                            targetCells[validCount] = pos;
-                            targetMaps[validCount] = selfLower;
-                            existingWaters[validCount] = selfLowerWater;
+                            // Bulk transfer: move as much as possible, keep at least 1 on source
+                            int transferAmount = Math.Min(this.Volume - 1, belowCapacity);
+                            if (transferAmount < 1) transferAmount = 1; // always move at least 1 if we have >1
+
                             if (debug)
                             {
-                                WaterSpringLogger.LogDebug($"[Portal] self-hole at {pos}; lower map #{selfLower.uniqueID}; target is {(selfLowerWater!=null?"existing":"empty")} water");
+                                WaterSpringLogger.LogDebug($"[Gravity] self-hole at {pos}; bulk transfer {transferAmount} units down to map #{selfLower.uniqueID}");
                             }
-                            validCount++;
+
+                            if (belowWater != null)
+                            {
+                                // Existing water below — add volume directly
+                                belowWater.AddVolume(transferAmount);
+                                this.Volume -= transferAmount;
+                            }
+                            else
+                            {
+                                // Empty tile below — spawn new water
+                                ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
+                                if (waterDef != null)
+                                {
+                                    Thing newWater = ThingMaker.MakeThing(waterDef);
+                                    if (newWater is FlowingWater typed)
+                                    {
+                                        typed.Volume = 0;
+                                        GenSpawn.Spawn(newWater, pos, selfLower);
+                                        typed.AddVolume(transferAmount);
+                                        this.Volume -= transferAmount;
+                                    }
+                                }
+                            }
+
+                            // Register both tiles as active
+                            if (settings.useActiveTileSystem)
+                            {
+                                var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                dm?.RegisterActiveTile(this.Map, this.Position);
+                                dm?.RegisterActiveTile(selfLower, pos);
+                                this.ResetStabilityCounter();
+                                belowWater?.ResetStabilityCounter();
+                            }
+
+                            return true; // Gravity handled it — skip horizontal scan entirely
                         }
-                        else if (debug)
-                        {
-                            WaterSpringLogger.LogDebug($"[Portal] self-hole: lower map does not contain cell {pos}");
-                        }
-                    }
-                    else if (debug)
-                    {
-                        WaterSpringLogger.LogDebug("[Portal] self-hole: lower map not resolved");
+                        // belowCapacity == 0: tile below is full (7/7). Fall through to horizontal scan.
                     }
                 }
 
@@ -523,51 +553,70 @@ namespace WaterSpringMod.WaterSpring
                         }
                     }
 
-                    // Check for WS_Hole building first (even if not walkable)
+                    // Check for WS_Hole building on neighbor (gravity shortcut)
                     if (VerticalPortalBridge.IsHoleAt(Map, adjacentCell))
                     {
-                        if (VerticalPortalBridge.TryGetLowerMap(Map, out var lowerMap))
+                        if (VerticalPortalBridge.TryGetLowerMap(Map, out var lowerMap) && adjacentCell.InBounds(lowerMap))
                         {
-                            if (adjacentCell.InBounds(lowerMap))
+                            bool passable = adjacentCell.Walkable(lowerMap);
+                            if (!passable)
                             {
-                                bool passable = true;
-                                if (!adjacentCell.Walkable(lowerMap))
+                                TerrainDef tLower = lowerMap.terrainGrid.TerrainAt(adjacentCell);
+                                passable = (tLower == TerrainDefOf.WaterShallow || tLower == TerrainDefOf.WaterDeep);
+                            }
+                            if (passable)
+                            {
+                                FlowingWater lowerWater = lowerMap.thingGrid.ThingAt<FlowingWater>(adjacentCell);
+                                int lowerVol = lowerWater?.Volume ?? 0;
+                                int lowerCap = MaxVolume - lowerVol;
+
+                                if (lowerCap > 0)
                                 {
-                                    TerrainDef tLower = lowerMap.terrainGrid.TerrainAt(adjacentCell);
-                                    if (!(tLower == TerrainDefOf.WaterShallow || tLower == TerrainDefOf.WaterDeep))
-                                    {
-                                        passable = false;
-                                    }
-                                }
-                                if (passable)
-                                {
-                                    FlowingWater lowerWater = lowerMap.thingGrid.ThingAt<FlowingWater>(adjacentCell);
-                                    validCells[validCount] = adjacentCell;
-                                    targetCells[validCount] = adjacentCell;
-                                    targetMaps[validCount] = lowerMap;
-                                    existingWaters[validCount] = lowerWater;
+                                    // Gravity priority: bulk transfer down through neighbor hole
+                                    int gTransfer = Math.Min(this.Volume - 1, lowerCap);
+                                    if (gTransfer < 1) gTransfer = 1;
+
                                     if (debug)
                                     {
-                                        WaterSpringLogger.LogDebug($"[Portal] neighbor-hole at {adjacentCell}; lower map #{lowerMap.uniqueID}; target is {(lowerWater!=null?"existing":"empty")} water");
+                                        WaterSpringLogger.LogDebug($"[Gravity] neighbor-hole at {adjacentCell}; bulk transfer {gTransfer} units down to map #{lowerMap.uniqueID}");
                                     }
-                                    validCount++;
+
+                                    if (lowerWater != null)
+                                    {
+                                        lowerWater.AddVolume(gTransfer);
+                                        this.Volume -= gTransfer;
+                                    }
+                                    else
+                                    {
+                                        ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
+                                        if (waterDef != null)
+                                        {
+                                            Thing nw = ThingMaker.MakeThing(waterDef);
+                                            if (nw is FlowingWater typed)
+                                            {
+                                                typed.Volume = 0;
+                                                GenSpawn.Spawn(nw, adjacentCell, lowerMap);
+                                                typed.AddVolume(gTransfer);
+                                                this.Volume -= gTransfer;
+                                            }
+                                        }
+                                    }
+
+                                    if (settings.useActiveTileSystem)
+                                    {
+                                        var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                        dm?.RegisterActiveTile(this.Map, this.Position);
+                                        dm?.RegisterActiveTile(lowerMap, adjacentCell);
+                                        this.ResetStabilityCounter();
+                                        lowerWater?.ResetStabilityCounter();
+                                    }
+
+                                    return true; // Gravity handled — skip rest
                                 }
-                                else if (debug)
-                                {
-                                    WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower cell {adjacentCell} not passable and not water; skipping");
-                                }
-                            }
-                            else if (debug)
-                            {
-                                WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower map does not contain cell {adjacentCell}; skipping");
+                                // Lower tile full — don't add as horizontal candidate either.
                             }
                         }
-                        else if (debug)
-                        {
-                            WaterSpringLogger.LogDebug($"[Portal] neighbor-hole: lower map not resolved for {adjacentCell}");
-                        }
-                        // Do not add same-map candidate for hole tile (acts as portal)
-                        continue;
+                        continue; // Hole tile: always skip as same-map horizontal candidate
                     }
 
                     // Non-void neighbor: require passability on this map
