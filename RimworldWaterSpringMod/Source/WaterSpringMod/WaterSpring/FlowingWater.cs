@@ -659,24 +659,20 @@ namespace WaterSpringMod.WaterSpring
 
                 }
                 
-                // If we found valid cells, choose the best one to transfer water to
+                // If we found valid cells, transfer to ALL eligible targets
                 if (validCount > 0)
                 {
                     if (debug)
                     {
                         WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Found {validCount} valid adjacent cells");
                     }
-                    
-                    // Anti-backflow: decay cooldown over time
-                    if (backflowCooldownRemaining > 0) backflowCooldownRemaining--;
 
-                    // First, check if there are any empty cells where we can create new water
-                    // This is a priority to expand the water area. Note: If a min diff is required for transfers,
-                    // expansion provides a path forward even when neighbors are equal.
-                    // Allow expansion when there's at least 2 units to split
+                    bool anyTransferred = false;
+
+                    // PASS 1: Expansion to empty cells (spawn new water)
+                    // Expand to ONE random empty cell per tick (spawning is expensive)
                     if (Volume >= 2)
                     {
-                        // Reservoir-sample an empty cell (uniform without allocations)
                         int emptyIndex = -1;
                         int emptySeen = 0;
                         for (int i = 0; i < validCount; i++)
@@ -684,175 +680,98 @@ namespace WaterSpringMod.WaterSpring
                             if (existingWaters[i] == null)
                             {
                                 emptySeen++;
-                                // pick with 1/emptySeen probability
-                                if (Rand.Range(0, emptySeen) == 0)
-                                {
-                                    emptyIndex = i;
-                                }
+                                if (Rand.Range(0, emptySeen) == 0) emptyIndex = i;
                             }
                         }
-                        if (debug && emptySeen > 0 && emptyIndex >= 0)
-                        {
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Selected empty cell {validCells[emptyIndex]} from {emptySeen} empty cells");
-                        }
-                        
-                        // If we found an empty cell, create new water
+
                         if (emptyIndex >= 0)
                         {
                             if (debug)
                             {
-                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Creating new water at empty cell {validCells[emptyIndex]}");
+                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Expanding to empty cell {validCells[emptyIndex]}");
                             }
                             ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
                             if (waterDef != null)
                             {
                                 Thing newWater = ThingMaker.MakeThing(waterDef);
-                                if (newWater != null && newWater is FlowingWater typedWater)
+                                if (newWater is FlowingWater typedWater)
                                 {
                                     typedWater.Volume = 0;
                                     Map destMap = targetMaps[emptyIndex] ?? Map;
                                     IntVec3 destCell = targetCells[emptyIndex];
                                     GenSpawn.Spawn(newWater, destCell, destMap);
-                                    bool moved = false;
-                                    if (destMap == this.Map)
+
+                                    // Give half our volume to the new tile (expansion is generous)
+                                    int expAmount = Math.Max(1, this.Volume / 2);
+                                    expAmount = Math.Min(expAmount, this.Volume - 1); // keep at least 1
+                                    if (expAmount > 0)
                                     {
-                                        moved = TransferVolume(typedWater);
-                                    }
-                                    else
-                                    {
-                                        // Equilibrium transfer across maps; new tile has vol 0
-                                        if (this.Volume > 0)
-                                        {
-                                            int expAmount = Math.Max(1, (this.Volume - 0) / 2); // half diff with empty (vol 0)
-                                            expAmount = Math.Min(expAmount, this.Volume - 1); // keep at least 1 on source
-                                            if (expAmount < 1) expAmount = 1;
-                                            typedWater.AddVolume(expAmount);
-                                            this.Volume -= expAmount;
-                                            if (debug)
-                                            {
-                                                WaterSpringLogger.LogDebug($"[Portal] cross-map expansion: {this.Position} (vol now {this.Volume}) -> {destCell} on map #{destMap.uniqueID} (new water vol {typedWater.Volume})");
-                                            }
-                                            moved = true;
-                                            if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
-                                            {
-                                                var diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                                diffusionManager?.RegisterActiveTile(this.Map, this.Position);
-                                                diffusionManager?.RegisterActiveTile(destMap, destCell);
-                                                this.ResetStabilityCounter();
-                                                typedWater.ResetStabilityCounter();
-                                            }
-                                        }
-                                    }
-                                    if (moved)
-                                    {
-                                        // Mark inbound direction for the new tile to reduce immediate backflow
-                                        typedWater.lastInboundFrom = this.Position;
-                                        typedWater.backflowCooldownRemaining = Mathf.Max(typedWater.backflowCooldownRemaining, LoadedModManager.GetMod<WaterSpringModMain>().settings.backflowCooldownTicks);
-                                    }
-                                    return true; // Diffusion occurred
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Second priority: Transfer to existing water with lowest volume (respect min volume difference)
-                    int lowestVolume = int.MaxValue;
-                    
-                    // First pass: Find the lowest volume
-                    for (int i = 0; i < validCount; i++)
-                    {
-                        if (existingWaters[i] != null && existingWaters[i].Volume < MaxVolume)
-                        {
-                            if (existingWaters[i].Volume < lowestVolume)
-                            {
-                                lowestVolume = existingWaters[i].Volume;
-                            }
-                        }
-                    }
-                    
-                    // If we found water to transfer to, randomly select one of the lowest volume cells
-                    if (lowestVolume != int.MaxValue)
-                    {
-                        // Enforce minimum volume difference to avoid equal-volume oscillation
-                        int minDiff = settings.minVolumeDifferenceForTransfer;
-                        int chosen = -1;
-                        int eligSeen = 0;
-                        for (int i = 0; i < validCount; i++)
-                        {
-                            var nw = existingWaters[i];
-                            if (nw == null) continue;
-                            if (nw.Volume != lowestVolume) continue;
-                            int neighborVol = nw.Volume;
-                            if ((this.Volume - neighborVol) >= 2) // Need diff >= 2 for equilibrium transfer
-                            {
-                                eligSeen++;
-                                if (Rand.Range(0, eligSeen) == 0)
-                                {
-                                    chosen = i;
-                                }
-                            }
-                        }
-                        if (chosen >= 0)
-                        {
-                            if (debug)
-                            {
-                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Transferring to existing water at {validCells[chosen]} (map {(targetMaps[chosen]==Map?"same":"lower")}) with volume {existingWaters[chosen].Volume} (minDiff {minDiff})");
-                            }
-                            bool transferred = false;
-                            if (targetMaps[chosen] == this.Map)
-                            {
-                                transferred = TransferVolume(existingWaters[chosen]);
-                            }
-                            else
-                            {
-                                // Cross-map transfer: equilibrium-seeking
-                                var dest = existingWaters[chosen];
-                                if (dest.Volume < MaxVolume)
-                                {
-                                    int crossDiff = this.Volume - dest.Volume;
-                                    int crossTransfer = crossDiff / 2;
-                                    crossTransfer = Math.Min(crossTransfer, MaxVolume - dest.Volume);
-                                    crossTransfer = Math.Min(crossTransfer, this.Volume);
-                                    if (crossTransfer <= 0) crossTransfer = 1; // minimum 1 if we got here past eligibility
-                                    if ((this.Volume - dest.Volume) >= 2)
-                                    {
-                                        dest.AddVolume(crossTransfer);
-                                        this.Volume -= crossTransfer;
-                                        if (debug)
-                                        {
-                                            WaterSpringLogger.LogDebug($"[Portal] cross-map transfer: {this.Position} -> {targetCells[chosen]} on map #{targetMaps[chosen].uniqueID}; src vol now {this.Volume}, dest vol now {dest.Volume}");
-                                        }
-                                        transferred = true;
+                                        typedWater.AddVolume(expAmount);
+                                        this.Volume -= expAmount;
+                                        anyTransferred = true;
+
                                         if (settings.useActiveTileSystem)
                                         {
-                                            var diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                            diffusionManager?.RegisterActiveTile(this.Map, this.Position);
-                                            diffusionManager?.RegisterActiveTile(targetMaps[chosen], targetCells[chosen]);
+                                            var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                            dm?.RegisterActiveTile(this.Map, this.Position);
+                                            dm?.RegisterActiveTile(destMap, destCell);
                                             this.ResetStabilityCounter();
-                                            dest.ResetStabilityCounter();
+                                            typedWater.ResetStabilityCounter();
                                         }
                                     }
                                 }
                             }
-                            if (transferred && settings.antiBackflowEnabled)
-                            {
-                                // Update inbound/outbound markers to discourage immediate backflow
-                                existingWaters[chosen].lastInboundFrom = this.Position;
-                                existingWaters[chosen].backflowCooldownRemaining = Mathf.Max(existingWaters[chosen].backflowCooldownRemaining, settings.backflowCooldownTicks);
-                            }
-                            return transferred; // Return whether diffusion actually occurred
-                        }
-                        else if (debug)
-                        {
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No eligible neighbor meets min volume difference {minDiff}; no transfer");
                         }
                     }
-                    
-                    // If no empty cells and all adjacent water cells are at max volume,
-                    // we simply wait and do nothing
+
+                    // PASS 2: Transfer to ALL existing water neighbors with lower volume
+                    // Process each eligible neighbor independently with equilibrium transfer
+                    if (this.Volume >= 2) // Still have water to give after expansion
+                    {
+                        for (int i = 0; i < validCount; i++)
+                        {
+                            if (this.Volume <= 1) break; // Stop if we're down to 1
+
+                            var nw = existingWaters[i];
+                            if (nw == null || nw.Volume >= MaxVolume) continue;
+
+                            int diff = this.Volume - nw.Volume;
+                            if (diff < 2) continue; // Equilibrium: diff 0-1 means no transfer
+
+                            int transferAmount = diff / 2;
+                            transferAmount = Math.Min(transferAmount, MaxVolume - nw.Volume);
+                            transferAmount = Math.Min(transferAmount, this.Volume - 1); // keep at least 1
+                            if (transferAmount <= 0) continue;
+
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Multi-transfer {transferAmount} to {validCells[i]} (vol {nw.Volume}) [diff={diff}]");
+                            }
+
+                            nw.AddVolume(transferAmount);
+                            this.Volume -= transferAmount;
+                            anyTransferred = true;
+
+                            // Register both tiles as active
+                            if (settings.useActiveTileSystem)
+                            {
+                                var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                                dm?.RegisterActiveTile(this.Map, this.Position);
+                                dm?.RegisterActiveTile(targetMaps[i], targetCells[i]);
+                                this.ResetStabilityCounter();
+                                nw.ResetStabilityCounter();
+                            }
+                        }
+                    }
+
+                    if (anyTransferred)
+                    {
+                        return true;
+                    }
+
                     if (debug)
                     {
-                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No available cells to transfer to - all adjacent water is at max volume");
+                        WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No eligible transfers (all neighbors at equilibrium or max)");
                     }
                 }
                 else
