@@ -447,6 +447,33 @@ namespace WaterSpringMod.WaterSpring
                 }
             }
 
+            // NEW: Propagate to levels above/below (MultiFloors integration)
+            if (MultiFloorsIntegration.IsAvailable && MultiFloorsIntegration.IsMultiLevel(map))
+            {
+                VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(map, position);
+                
+                // Also check lower level if this is a foundation change on upper level
+                int currentLevel = MultiFloorsIntegration.GetLevel(map);
+                if (currentLevel > 0)
+                {
+                    if (MultiFloorsIntegration.TryGetLowerMap(map, out Map lowerMap))
+                    {
+                        if (position.InBounds(lowerMap))
+                        {
+                            // Wake water below that might now have outlet/inlet
+                            var waterBelow = lowerMap.thingGrid.ThingAt<FlowingWater>(position);
+                            if (waterBelow != null && waterBelow.IsExplicitlyDeregistered)
+                            {
+                                waterBelow.Reactivate();
+                            }
+                            
+                            RegisterActiveTile(lowerMap, position);
+                            ActivateNeighbors(lowerMap, position);
+                        }
+                    }
+                }
+            }
+            
             // Propagate a bounded reactivation wave backwards from the changed position
             // to ensure the path toward the source wakes up. Reuse scratch BFS buffers.
             int maxWaveSteps = 32; // safety bound

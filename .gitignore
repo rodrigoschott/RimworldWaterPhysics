@@ -1,0 +1,12 @@
+# Build artifacts
+**/obj/
+**/bin/
+*.pdb
+
+# Decompiled/reference (not for distribution)
+MultiFloors-Decompiled/
+MultiFloors-Steam/
+
+# IDE
+.vs/
+*.user

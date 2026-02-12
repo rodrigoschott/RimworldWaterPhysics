@@ -103,7 +103,8 @@ namespace WaterSpringMod
             tabs.Add(new TabRecord("Strategy 3", () => selectedTab = 2, selectedTab == 2));
             tabs.Add(new TabRecord("Strategy 5", () => selectedTab = 3, selectedTab == 3));
             tabs.Add(new TabRecord("Evaporation", () => selectedTab = 4, selectedTab == 4));
-            tabs.Add(new TabRecord("Debug", () => selectedTab = 5, selectedTab == 5));
+            tabs.Add(new TabRecord("Multi-Level", () => selectedTab = 5, selectedTab == 5));
+            tabs.Add(new TabRecord("Debug", () => selectedTab = 6, selectedTab == 6));
             
             TabDrawer.DrawTabs(tabRect, tabs);
             
@@ -126,7 +127,7 @@ namespace WaterSpringMod
             listingStandard.Begin(viewRect);
             
             // Clamp selectedTab to available range in case of legacy saved index
-            if (selectedTab < 0 || selectedTab > 5) selectedTab = 0;
+            if (selectedTab < 0 || selectedTab > 6) selectedTab = 0;
 
             switch (selectedTab)
             {
@@ -361,7 +362,63 @@ namespace WaterSpringMod
                     }
                     break;
 
-                case 5: // Debug & Developer Tools
+                case 5: // Multi-Level Integration (MultiFloors)
+                    // Display integration status
+                    if (MultiFloorsIntegration.IsAvailable)
+                    {
+                        _tmpContent.text = "<color=green>✓ MultiFloors integration ACTIVE</color>";
+                        _tmpContent.tooltip = "MultiFloors mod detected. Water can flow through stairs, elevators, and void terrain.";
+                    }
+                    else
+                    {
+                        _tmpContent.text = "<color=yellow>○ MultiFloors not detected</color>";
+                        _tmpContent.tooltip = "MultiFloors mod not found. Water will only flow through WS_Hole buildings.";
+                    }
+                    LabelCached(listingStandard, _tmpContent);
+                    listingStandard.Gap();
+                    
+                    // Void terrain detection
+                    listingStandard.CheckboxLabeled("Use MultiFloors void terrain", ref settings.useMultiFloorsVoidTerrain,
+                        "When enabled, water flows through MultiFloors' native void/transparent terrain on upper levels.");
+                    
+                    // Stair water flow
+                    listingStandard.Gap();
+                    listingStandard.CheckboxLabeled("Enable stair water flow", ref settings.stairWaterFlowEnabled,
+                        "Water flows naturally through stairs between levels (requires MultiFloors).");
+                    
+                    if (settings.stairWaterFlowEnabled)
+                    {
+                        listingStandard.CheckboxLabeled("Allow upward stair flooding", ref settings.upwardStairFlowEnabled,
+                            "When enabled, high-volume water can flow UP stairs (simulates pressure/flooding).");
+                        
+                        if (settings.upwardStairFlowEnabled)
+                        {
+                            LabelDynamicInt(listingStandard, "Min volume for upward flow: ", settings.minVolumeForUpwardFlow, 
+                                " units", "Minimum water volume required to flow upward through stairs.");
+                            settings.minVolumeForUpwardFlow = (int)listingStandard.Slider(settings.minVolumeForUpwardFlow, 1, 7);
+                        }
+                    }
+                    
+                    // Elevator water flow (experimental)
+                    listingStandard.Gap();
+                    listingStandard.CheckboxLabeled("Enable elevator water flow (experimental)", ref settings.elevatorWaterFlowEnabled,
+                        "Water flows through elevator shafts. Experimental feature, may cause issues.");
+                    
+                    if (settings.elevatorWaterFlowEnabled)
+                    {
+                        listingStandard.CheckboxLabeled("Elevators require power", ref settings.elevatorRequiresPower,
+                            "Water only flows through powered, idle elevators.");
+                    }
+                    
+                    // Cross-level activation
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Max vertical propagation depth: ", settings.maxVerticalPropagationDepth,
+                        " levels", "How many levels up to propagate activation when water changes below.");
+                    settings.maxVerticalPropagationDepth = (int)listingStandard.Slider(settings.maxVerticalPropagationDepth, 1, 10);
+                    
+                    break;
+
+                case 6: // Debug & Developer Tools
                     // Debug header
                     LabelCached(listingStandard, GC_Debug_Header);
                     listingStandard.Gap();

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>WaterSpringMod</AssemblyName>
     <RootNamespace>WaterSpringMod</RootNamespace>
@@ -33,6 +33,20 @@
     <PackageReference Include="Lib.Harmony" Version="2.2.2">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <!-- MultiFloors soft dependency: compile-time reference, NOT copied to output.
+       Mono lazy JIT ensures MF types are only resolved when methods are actually called.
+       All MF-referencing code is behind MultiFloorsIntegration.IsAvailable guard. -->
+  <ItemGroup>
+    <Reference Include="MultiFloors">
+      <HintPath>..\..\Reference\1.6\Assemblies\MultiFloors.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0PrepatcherAPI">
+      <HintPath>..\..\Reference\1.6\Assemblies\0PrepatcherAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

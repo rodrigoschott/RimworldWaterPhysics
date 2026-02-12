@@ -436,10 +436,11 @@ namespace WaterSpringMod.WaterSpring
             {
                 // Check adjacent cells (cardinal directions only)
                 IntVec3 pos = Position;
-                IntVec3[] validCells = new IntVec3[8]; // include up to 4 local + up to 4 virtual (void->down) slots
-                FlowingWater[] existingWaters = new FlowingWater[8]; // parallel storage for targets (same or lower map)
-                Map[] targetMaps = new Map[8]; // track which map each target belongs to
-                IntVec3[] targetCells = new IntVec3[8]; // track target cell (same or lower map)
+                // ⚠️ INCREASED from 8 to 12 to accommodate stairs+elevators+void portals
+                IntVec3[] validCells = new IntVec3[12];
+                FlowingWater[] existingWaters = new FlowingWater[12]; // parallel storage for targets (same or lower map)
+                Map[] targetMaps = new Map[12]; // track which map each target belongs to
+                IntVec3[] targetCells = new IntVec3[12]; // track target cell (same or lower map)
                 int validCount = 0;
                 
                 if (debug)
@@ -481,6 +482,46 @@ namespace WaterSpringMod.WaterSpring
                 {
                     IntVec3 adjacentCell = pos + neighbor;
                     if (!adjacentCell.InBounds(Map)) continue;
+
+                    // NEW: Check for stairs/portals (MultiFloors integration)
+                    if (MultiFloorsIntegration.IsAvailable && settings.stairWaterFlowEnabled && validCount < validCells.Length)
+                    {
+                        if (MultiFloorsIntegration.TryGetStairDestination(Map, adjacentCell, Volume, settings, 
+                            out Map stairDestMap, out IntVec3 stairDestCell, out bool isDownward))
+                        {
+                            FlowingWater destWater = stairDestMap.thingGrid.ThingAt<FlowingWater>(stairDestCell);
+                            validCells[validCount] = adjacentCell;
+                            targetCells[validCount] = stairDestCell;
+                            targetMaps[validCount] = stairDestMap;
+                            existingWaters[validCount] = destWater;
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"[Stair] {(isDownward ? "downward" : "upward")} stair at {adjacentCell}; dest map #{stairDestMap.uniqueID} cell {stairDestCell}");
+                            }
+                            validCount++;
+                            continue; // Don't also treat as normal neighbor
+                        }
+                    }
+
+                    // NEW: Check for elevators (MultiFloors Phase 5)
+                    if (MultiFloorsIntegration.IsAvailable && settings.elevatorWaterFlowEnabled && validCount < validCells.Length)
+                    {
+                        if (MultiFloorsIntegration.TryGetElevatorDestination(Map, adjacentCell, Volume, settings,
+                            out Map elevDestMap, out IntVec3 elevDestCell))
+                        {
+                            FlowingWater elevWater = elevDestMap.thingGrid.ThingAt<FlowingWater>(elevDestCell);
+                            validCells[validCount] = adjacentCell;
+                            targetCells[validCount] = elevDestCell;
+                            targetMaps[validCount] = elevDestMap;
+                            existingWaters[validCount] = elevWater;
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"[Elevator] shaft at {adjacentCell}; dest map #{elevDestMap.uniqueID} cell {elevDestCell}");
+                            }
+                            validCount++;
+                            continue; // Don't also treat as normal neighbor
+                        }
+                    }
 
                     // Check for WS_Hole building first (even if not walkable)
                     if (VerticalPortalBridge.IsHoleAt(Map, adjacentCell))
@@ -787,14 +828,55 @@ namespace WaterSpringMod.WaterSpring
         }
 
         // Hide the thing's visual when terrain is mirroring the water band
+    // Cached water overlay materials (avoid GC allocation per frame)
+        private static UnityEngine.Material _waterShallowMat;
+        private static UnityEngine.Material _waterDeepMat;
+        
+        private static UnityEngine.Material WaterShallowMaterial
+        {
+            get
+            {
+                if (_waterShallowMat == null)
+                    _waterShallowMat = SolidColorMaterials.SimpleSolidColorMaterial(
+                        new UnityEngine.Color(0.25f, 0.45f, 0.82f, 0.38f));
+                return _waterShallowMat;
+            }
+        }
+        
+        private static UnityEngine.Material WaterDeepMaterial
+        {
+            get
+            {
+                if (_waterDeepMat == null)
+                    _waterDeepMat = SolidColorMaterials.SimpleSolidColorMaterial(
+                        new UnityEngine.Color(0.15f, 0.30f, 0.75f, 0.55f));
+                return _waterDeepMat;
+            }
+        }
+        
     protected override void DrawAt(Vector3 drawLoc, bool flip = false)
         {
             var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
-            if (s != null && s.syncTerrainToWaterVolume)
+            bool isUpperLevel = MultiFloorsIntegration.IsAvailable && MultiFloorsIntegration.GetLevel(Map) > 0;
+            
+            if (isUpperLevel)
             {
-                // Don't draw the FlowingWater thing; terrain represents it visually
+                // On MF upper levels, foundations cover both terrain and low-altitude Things.
+                // Draw a semi-transparent water overlay ABOVE foundations using a full-tile plane.
+                // Still do terrain sync for gameplay (pathfinding, beauty), just not for visuals.
+                UnityEngine.Material mat = (Volume >= 5) ? WaterDeepMaterial : WaterShallowMaterial;
+                float altitude = Verse.Altitudes.AltitudeFor(Verse.AltitudeLayer.MetaOverlays);
+                UnityEngine.Vector3 pos = Position.ToVector3ShiftedWithAltitude(altitude);
+                UnityEngine.Graphics.DrawMesh(MeshPool.plane10, pos, UnityEngine.Quaternion.identity, mat, 0);
                 return;
             }
+            
+            // Ground level: use terrain sync if enabled (natural water terrain look)
+            if (s != null && s.syncTerrainToWaterVolume)
+            {
+                return;
+            }
+            
             base.DrawAt(drawLoc, flip);
         }
 

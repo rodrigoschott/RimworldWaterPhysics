@@ -69,6 +69,15 @@ namespace WaterSpringMod
 
     // Vertical portal: no settings required; uses WS_Hole and a fixed cache TTL
 
+    // Multi-level integration (MultiFloors)
+    public bool stairWaterFlowEnabled = true; // Default: enabled
+    public bool upwardStairFlowEnabled = true; // Default: enabled
+    public int minVolumeForUpwardFlow = 5; // Default: 5 (high pressure required)
+    public bool elevatorWaterFlowEnabled = false; // Default: disabled (opt-in feature)
+    public bool elevatorRequiresPower = true; // Default: enabled
+    public bool useMultiFloorsVoidTerrain = true; // Default: enabled
+    public int maxVerticalPropagationDepth = 3; // Default: 3 levels
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -129,6 +138,16 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref reactivationMaxTiles, "reactivationMaxTiles", 128);
             Scribe_Values.Look(ref reactivationImmediateTransfers, "reactivationImmediateTransfers", true);
             // No per-setting fields for vertical portal bridge
+            
+            // Save/load multi-level integration settings
+            Scribe_Values.Look(ref stairWaterFlowEnabled, "stairWaterFlowEnabled", true);
+            Scribe_Values.Look(ref upwardStairFlowEnabled, "upwardStairFlowEnabled", true);
+            Scribe_Values.Look(ref minVolumeForUpwardFlow, "minVolumeForUpwardFlow", 5);
+            Scribe_Values.Look(ref elevatorWaterFlowEnabled, "elevatorWaterFlowEnabled", false);
+            Scribe_Values.Look(ref elevatorRequiresPower, "elevatorRequiresPower", true);
+            Scribe_Values.Look(ref useMultiFloorsVoidTerrain, "useMultiFloorsVoidTerrain", true);
+            Scribe_Values.Look(ref maxVerticalPropagationDepth, "maxVerticalPropagationDepth", 3);
+            
             // Sanitize values after loading/applying defaults
             ClampAndSanitize();
         }
@@ -177,6 +196,10 @@ namespace WaterSpringMod
             evaporationChancePercentRoofed = Mathf.Clamp(evaporationChancePercentRoofed, 0, 100);
 
             // No clamps needed for vertical portal bridge
+            
+            // Multi-level integration
+            minVolumeForUpwardFlow = Mathf.Clamp(minVolumeForUpwardFlow, 1, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
+            maxVerticalPropagationDepth = Mathf.Clamp(maxVerticalPropagationDepth, 1, 10);
         }
     }
 }

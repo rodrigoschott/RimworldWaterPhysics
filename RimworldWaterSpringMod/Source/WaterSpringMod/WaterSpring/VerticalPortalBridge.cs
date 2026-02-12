@@ -58,6 +58,18 @@ namespace WaterSpringMod.WaterSpring
                 if (debug) WaterSpringLogger.LogDebug($"[Portal] IsHoleAt: cell {cell} out of bounds");
                 return false;
             }
+            
+            // NEW: Check for MultiFloors void terrain FIRST (if enabled and available)
+            if (MultiFloorsIntegration.IsAvailable && settings != null && settings.useMultiFloorsVoidTerrain)
+            {
+                // Check if this is void terrain on an upper level
+                if (MultiFloorsIntegration.IsVoidTerrain(map, cell))
+                {
+                    if (debug) WaterSpringLogger.LogDebug($"[Portal] IsHoleAt: {cell} is MF void terrain");
+                    return true;
+                }
+            }
+            
             var def = HoleDef;
             if (def == null)
             {
@@ -123,6 +135,21 @@ namespace WaterSpringMod.WaterSpring
                 if (debug) WaterSpringLogger.LogDebug("[Portal] TryGetLowerMap: current map is null");
                 return false;
             }
+            
+            // NEW: Try MultiFloors integration first (direct API, no reflection)
+            if (MultiFloorsIntegration.IsAvailable)
+            {
+                if (MultiFloorsIntegration.TryGetLowerMap(current, out lower))
+                {
+                    if (debug) WaterSpringLogger.LogDebug($"[Portal] TryGetLowerMap: MF direct API -> map #{lower.uniqueID}");
+                    return true;
+                }
+                // MF is available but no lower map found
+                if (debug) WaterSpringLogger.LogDebug("[Portal] TryGetLowerMap: MF API found no lower map");
+                return false;
+            }
+            
+            // FALLBACK: Use reflection-based detection (original code)
             int now = Find.TickManager?.TicksGame ?? 0;
             // Fixed TTL to avoid hot scans but adapt if maps appear mid-game
             const int ttl = 1200; // 20 seconds at 60 tps
@@ -456,6 +483,54 @@ namespace WaterSpringMod.WaterSpring
             var settings = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
             bool debug = settings?.debugModeEnabled ?? false;
             if (map == null) return;
+            
+            var gameComp = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+            
+            // NEW: Try MultiFloors VerticallyOutwardLevels first
+            if (MultiFloorsIntegration.IsAvailable)
+            {
+                var outwardLevels = MultiFloorsIntegration.GetVerticallyOutwardLevels(map);
+                if (outwardLevels != null && outwardLevels.Count > 0)
+                {
+                    int currentLevel = MultiFloorsIntegration.GetLevel(map);
+                    int maxDepth = Math.Max(1, settings?.maxVerticalPropagationDepth ?? 3);
+                    int depth = 0;
+                    
+                    // Iterate upward levels (vertically outward)
+                    foreach (var (level, upperMap) in outwardLevels)
+                    {
+                        if (level <= currentLevel) continue; // Only upward propagation
+                        if (upperMap == null) continue;
+                        if (!pos.InBounds(upperMap)) continue;
+                        
+                        // Check depth limit
+                        depth++;
+                        if (depth > maxDepth) break;
+                        
+                        // Only wake if upper map has hole/void at this position
+                        if (!IsHoleAt(upperMap, pos)) continue;
+                        
+                        // Wake water on upper level
+                        var w = upperMap.thingGrid.ThingAt<FlowingWater>(pos);
+                        if (w != null && w.IsExplicitlyDeregistered)
+                        {
+                            w.Reactivate();
+                        }
+                        
+                        gameComp?.RegisterActiveTile(upperMap, pos);
+                        gameComp?.ActivateNeighbors(upperMap, pos);
+                        gameComp?.ReactivateInRadius(upperMap, pos);
+                        
+                        if (debug)
+                        {
+                            WaterSpringLogger.LogDebug($"[Portal] MF vertical reactivation: woke upper #{upperMap.uniqueID} level {level} at {pos}");
+                        }
+                    }
+                    return; // MF path complete
+                }
+            }
+            
+            // FALLBACK: Use reflection-based _uppersByLower index
             if (!_uppersByLower.TryGetValue(map.uniqueID, out var uppers) || uppers == null || uppers.Count == 0)
             {
                 // Lazy discovery: find uppers on the same tile that link down to this map and have a hole at this pos
@@ -481,7 +556,6 @@ namespace WaterSpringMod.WaterSpring
             }
             if (!_uppersByLower.TryGetValue(map.uniqueID, out uppers) || uppers == null || uppers.Count == 0) return;
 
-            var gameComp = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
             foreach (var upper in uppers)
             {
                 if (upper == null || upper == map) continue;
