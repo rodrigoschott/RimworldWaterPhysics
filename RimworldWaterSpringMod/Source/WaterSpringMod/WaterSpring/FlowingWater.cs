@@ -741,10 +741,9 @@ namespace WaterSpringMod.WaterSpring
                                     IntVec3 destCell = targetCells[emptyIndex];
                                     GenSpawn.Spawn(newWater, destCell, destMap);
 
-                                    // Give half our volume to the new tile (expansion is generous)
-                                    int expAmount = Math.Max(1, this.Volume / 2);
-                                    expAmount = Math.Min(expAmount, this.Volume - 1); // keep at least 1
-                                    if (expAmount > 0)
+                                    // DF rule: transfer 1 unit to empty tile
+                                    int expAmount = 1;
+                                    if (this.Volume > 1)
                                     {
                                         typedWater.AddVolume(expAmount);
                                         this.Volume -= expAmount;
@@ -778,10 +777,8 @@ namespace WaterSpringMod.WaterSpring
                             int diff = this.Volume - nw.Volume;
                             if (diff < 2) continue; // Equilibrium: diff 0-1 means no transfer
 
-                            int transferAmount = diff / 2;
-                            transferAmount = Math.Min(transferAmount, MaxVolume - nw.Volume);
-                            transferAmount = Math.Min(transferAmount, this.Volume - 1); // keep at least 1
-                            if (transferAmount <= 0) continue;
+                            // DF rule: transfer exactly 1 unit per eligible neighbor pair
+                            int transferAmount = 1;
 
                             if (debug)
                             {
@@ -980,13 +977,8 @@ namespace WaterSpringMod.WaterSpring
             int diff = this.Volume - neighbor.Volume;
             if (diff <= 1) return false; // diff=1 means at equilibrium; diff<=0 means neighbor is equal or higher
 
-            // Equilibrium-seeking: move half the difference (rounded down)
-            // e.g., 7 vs 3 → transfer 2 → both become 5. 6 vs 4 → transfer 1 → both become 5.
-            int transferAmount = diff / 2;
-            // Clamp to available capacity
-            transferAmount = Math.Min(transferAmount, MaxVolume - neighbor.Volume);
-            transferAmount = Math.Min(transferAmount, this.Volume);
-            if (transferAmount <= 0) return false;
+            // DF rule: transfer exactly 1 unit per pair per tick
+            int transferAmount = 1;
 
             var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
             bool debug = settings.debugModeEnabled;
