@@ -199,6 +199,8 @@ namespace WaterSpringMod.WaterSpring
     // Evaporation scheduling
     private int nextEvapCheckTick = -1;
 
+    private int pressureCooldownRemaining = 0;
+
     private bool isSpringSourceTile = false; // set by spring on spawn
         
         public override void ExposeData()
@@ -214,6 +216,7 @@ namespace WaterSpringMod.WaterSpring
             Scribe_Values.Look(ref ticksSinceLastChange, "ticksSinceLastChange", 0);
             Scribe_Values.Look(ref isSpringSourceTile, "isSpringSourceTile", false);
             Scribe_Values.Look(ref nextEvapCheckTick, "nextEvapCheckTick", -1);
+            Scribe_Values.Look(ref pressureCooldownRemaining, "pressureCooldownRemaining", 0);
         }
         
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
@@ -499,6 +502,48 @@ namespace WaterSpringMod.WaterSpring
                             return true; // Gravity handled it — skip horizontal scan entirely
                         }
                         // belowCapacity == 0: tile below is full (7/7). Fall through to horizontal scan.
+                    }
+                }
+
+                // PRESSURE: If volume == MaxVolume, try BFS pressure propagation
+                if (settings.pressurePropagationEnabled && this.Volume >= MaxVolume)
+                {
+                    // Cooldown check
+                    if (pressureCooldownRemaining > 0)
+                    {
+                        pressureCooldownRemaining--;
+                    }
+                    else
+                    {
+                        // Check if all cardinal same-map neighbors are also full
+                        bool allNeighborsFull = true;
+                        foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                        {
+                            IntVec3 adj = pos + dir;
+                            if (!adj.InBounds(Map)) continue;
+                            FlowingWater adjWater = Map.thingGrid.ThingAt<FlowingWater>(adj);
+                            if (adjWater == null || adjWater.Volume < MaxVolume)
+                            {
+                                allNeighborsFull = false;
+                                break;
+                            }
+                        }
+
+                        if (allNeighborsFull)
+                        {
+                            if (debug)
+                            {
+                                WaterSpringLogger.LogDebug($"[Pressure] All neighbors full at {pos}. Initiating BFS pressure propagation.");
+                            }
+
+                            bool pressured = PressurePropagation.TryPropagate(this, Map, settings, debug);
+                            if (pressured)
+                            {
+                                pressureCooldownRemaining = settings.pressureCooldownTicks;
+                                return true; // Pressure handled it
+                            }
+                            // If pressure finds no outlet, fall through to normal scan
+                        }
                     }
                 }
 

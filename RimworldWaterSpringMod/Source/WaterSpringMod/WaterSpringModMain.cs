@@ -401,7 +401,22 @@ namespace WaterSpringMod
                     LabelDynamicInt(listingStandard, "Max vertical propagation depth: ", settings.maxVerticalPropagationDepth,
                         " levels", "How many levels up to propagate activation when water changes below.");
                     settings.maxVerticalPropagationDepth = (int)listingStandard.Slider(settings.maxVerticalPropagationDepth, 1, 10);
-                    
+
+                    // Pressure propagation
+                    listingStandard.Gap();
+                    listingStandard.Label("--- Pressure Propagation (DF-Inspired) ---");
+                    listingStandard.CheckboxLabeled("Enable pressure propagation", ref settings.pressurePropagationEnabled,
+                        "When water at max volume is surrounded by full tiles, BFS through connected full tiles to find the nearest outlet. Enables instant pipe flow and U-bend behavior.");
+                    if (settings.pressurePropagationEnabled)
+                    {
+                        LabelDynamicInt(listingStandard, "Max BFS Depth: ", settings.pressureMaxSearchDepth, " tiles",
+                            tooltip: "Maximum number of tiles to search during pressure propagation. Higher = longer pipes work, but more CPU per event.");
+                        settings.pressureMaxSearchDepth = (int)listingStandard.Slider(settings.pressureMaxSearchDepth, 4, 256);
+                        LabelDynamicInt(listingStandard, "Cooldown: ", settings.pressureCooldownTicks, " ticks",
+                            tooltip: "Minimum ticks between pressure events on the same tile. Prevents BFS spam from active springs.");
+                        settings.pressureCooldownTicks = (int)listingStandard.Slider(settings.pressureCooldownTicks, 0, 120);
+                    }
+
                     break;
 
                 case 6: // Debug & Developer Tools

@@ -40,6 +40,9 @@ namespace WaterSpringMod.WaterSpring
     // Reusable BFS structures for terrain-change waves
     private readonly Queue<IntVec3> bfsFrontier = new Queue<IntVec3>(256);
     private readonly HashSet<IntVec3> bfsVisited = new HashSet<IntVec3>();
+    // Dedicated BFS structures for pressure propagation (separate from terrain-change BFS)
+    internal readonly Queue<IntVec3> pressureBfsFrontier = new Queue<IntVec3>(64);
+    internal readonly HashSet<IntVec3> pressureBfsVisited = new HashSet<IntVec3>();
     // Scratch list for drawing to avoid concurrent modification of sets during enumeration
     private readonly List<IntVec3> scratchDrawTiles = new List<IntVec3>(2048);
         

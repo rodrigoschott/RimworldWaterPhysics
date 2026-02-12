@@ -73,6 +73,11 @@ namespace WaterSpringMod
     public bool useMultiFloorsVoidTerrain = true; // Default: enabled
     public int maxVerticalPropagationDepth = 3; // Default: 3 levels
 
+    // Pressure propagation (DF-inspired)
+    public bool pressurePropagationEnabled = true;
+    public int pressureMaxSearchDepth = 32;        // Max BFS tiles to explore
+    public int pressureCooldownTicks = 10;          // Min ticks between pressure events per tile
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -138,6 +143,11 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref useMultiFloorsVoidTerrain, "useMultiFloorsVoidTerrain", true);
             Scribe_Values.Look(ref maxVerticalPropagationDepth, "maxVerticalPropagationDepth", 3);
             
+            // Save/load pressure settings
+            Scribe_Values.Look(ref pressurePropagationEnabled, "pressurePropagationEnabled", true);
+            Scribe_Values.Look(ref pressureMaxSearchDepth, "pressureMaxSearchDepth", 32);
+            Scribe_Values.Look(ref pressureCooldownTicks, "pressureCooldownTicks", 10);
+
             // Sanitize values after loading/applying defaults
             ClampAndSanitize();
         }
@@ -186,6 +196,10 @@ namespace WaterSpringMod
             // Multi-level integration
             minVolumeForUpwardFlow = Mathf.Clamp(minVolumeForUpwardFlow, 1, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
             maxVerticalPropagationDepth = Mathf.Clamp(maxVerticalPropagationDepth, 1, 10);
+
+            // Pressure propagation
+            pressureMaxSearchDepth = Mathf.Clamp(pressureMaxSearchDepth, 4, 256);
+            pressureCooldownTicks = Mathf.Clamp(pressureCooldownTicks, 0, 600);
         }
     }
 }
