@@ -1,12 +1,16 @@
 # Issue #004: Pressure Propagation (DF-Inspired "Teleport")
 
-**Status:** Planned  
-**Priority:** 🔴 High  
-**Complexity:** ⭐⭐⭐⭐ (Medium-High)  
-**Estimated Hours:** 20-35h  
-**Dependencies:** None (but synergizes with Issue #002 Channels and Issue #003 Pump)  
-**Inspired by:** Dwarf Fortress "lazy pressure model"  
-**Created:** 2026-02-11  
+**Status:** Implemented
+**Priority:** 🔴 High
+**Complexity:** ⭐⭐⭐⭐ (Medium-High)
+**Estimated Hours:** 20-35h (actual: implemented as part of core rewrite)
+**Dependencies:** None (but synergizes with Issue #002 Channels and Issue #003 Pump)
+**Inspired by:** Dwarf Fortress "lazy pressure model"
+**Created:** 2026-02-11
+**Implemented:** 2026-02-12 (as part of water physics core rewrite)
+**Plan:** `docs/plans/2026-02-12-water-physics-core-rewrite.md`
+
+> **Implementation Notes:** Pressure BFS was implemented as Task 5 of a 6-task core rewrite that also included gravity-first bulk transfer, equilibrium-seeking diff/2, multi-neighbor diffusion, and anti-backflow removal. The implementation uses the proactive trigger approach (check on diffusion tick when all neighbors are full) with M1 (depth limit 32), M2 (cooldown 10 ticks), and M5 (dedicated scratch buffers). Same-map only for MVP. See `PressurePropagation.cs`.
 
 ---
 
