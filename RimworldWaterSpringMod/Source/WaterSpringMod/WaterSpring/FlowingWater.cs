@@ -720,14 +720,17 @@ namespace WaterSpringMod.WaterSpring
                                     }
                                     else
                                     {
-                                        // Manual 1-unit transfer across maps; respect capacity and min-diff (dest is newly spawned => allowed)
+                                        // Equilibrium transfer across maps; new tile has vol 0
                                         if (this.Volume > 0)
                                         {
-                                            typedWater.AddVolume(1);
-                                            this.Volume -= 1;
+                                            int expAmount = Math.Max(1, (this.Volume - 0) / 2); // half diff with empty (vol 0)
+                                            expAmount = Math.Min(expAmount, this.Volume - 1); // keep at least 1 on source
+                                            if (expAmount < 1) expAmount = 1;
+                                            typedWater.AddVolume(expAmount);
+                                            this.Volume -= expAmount;
                                             if (debug)
                                             {
-                                                WaterSpringLogger.LogDebug($"[Portal] cross-map expansion: {this.Position} (vol now {this.Volume}) -> {destCell} on map #{destMap.uniqueID} (new water vol 1)");
+                                                WaterSpringLogger.LogDebug($"[Portal] cross-map expansion: {this.Position} (vol now {this.Volume}) -> {destCell} on map #{destMap.uniqueID} (new water vol {typedWater.Volume})");
                                             }
                                             moved = true;
                                             if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
@@ -780,12 +783,7 @@ namespace WaterSpringMod.WaterSpring
                             if (nw == null) continue;
                             if (nw.Volume != lowestVolume) continue;
                             int neighborVol = nw.Volume;
-                            int required = minDiff;
-                            if (settings.antiBackflowEnabled && backflowCooldownRemaining > 0 && validCells[i] == lastInboundFrom)
-                            {
-                                required += Mathf.Max(0, settings.backflowMinDiffBonus);
-                            }
-                            if ((this.Volume - neighborVol) >= required)
+                            if ((this.Volume - neighborVol) >= 2) // Need diff >= 2 for equilibrium transfer
                             {
                                 eligSeen++;
                                 if (Rand.Range(0, eligSeen) == 0)
@@ -807,15 +805,19 @@ namespace WaterSpringMod.WaterSpring
                             }
                             else
                             {
-                                // Cross-map transfer: enforce min-diff and capacity
+                                // Cross-map transfer: equilibrium-seeking
                                 var dest = existingWaters[chosen];
                                 if (dest.Volume < MaxVolume)
                                 {
-                                    int required = minDiff;
-                                    if ((this.Volume - dest.Volume) >= required)
+                                    int crossDiff = this.Volume - dest.Volume;
+                                    int crossTransfer = crossDiff / 2;
+                                    crossTransfer = Math.Min(crossTransfer, MaxVolume - dest.Volume);
+                                    crossTransfer = Math.Min(crossTransfer, this.Volume);
+                                    if (crossTransfer <= 0) crossTransfer = 1; // minimum 1 if we got here past eligibility
+                                    if ((this.Volume - dest.Volume) >= 2)
                                     {
-                                        dest.AddVolume(1);
-                                        this.Volume -= 1;
+                                        dest.AddVolume(crossTransfer);
+                                        this.Volume -= crossTransfer;
                                         if (debug)
                                         {
                                             WaterSpringLogger.LogDebug($"[Portal] cross-map transfer: {this.Position} -> {targetCells[chosen]} on map #{targetMaps[chosen].uniqueID}; src vol now {this.Volume}, dest vol now {dest.Volume}");
@@ -1012,57 +1014,51 @@ namespace WaterSpringMod.WaterSpring
         {
             if (neighbor == null || neighbor.Destroyed || !neighbor.Spawned || Destroyed || !Spawned)
                 return false;
-                
-            if (neighbor.Volume < MaxVolume && this.Volume > 0)
+
+            if (neighbor.Volume >= MaxVolume || this.Volume <= 0)
+                return false;
+
+            int diff = this.Volume - neighbor.Volume;
+            if (diff <= 1) return false; // diff=1 means at equilibrium; diff<=0 means neighbor is equal or higher
+
+            // Equilibrium-seeking: move half the difference (rounded down)
+            // e.g., 7 vs 3 → transfer 2 → both become 5. 6 vs 4 → transfer 1 → both become 5.
+            int transferAmount = diff / 2;
+            // Clamp to available capacity
+            transferAmount = Math.Min(transferAmount, MaxVolume - neighbor.Volume);
+            transferAmount = Math.Min(transferAmount, this.Volume);
+            if (transferAmount <= 0) return false;
+
+            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
+            bool debug = settings.debugModeEnabled;
+
+            if (debug)
             {
-                // Always transfer if neighbor isn't at max volume and this water has volume to give
-                // Enforce minimum difference for transfers to existing water to prevent ping-pong
-                var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-                int minDiff = Mathf.Max(0, s.minVolumeDifferenceForTransfer);
-                bool debug = s.debugModeEnabled;
-                bool neighborIsNewlySpawned = neighbor.Volume == 0; // allow expansion
-                if (!neighborIsNewlySpawned)
-                {
-                    if ((this.Volume - neighbor.Volume) < minDiff)
-                    {
-                        return false;
-                    }
-                }
-                int transferAmount = Math.Min(1, Math.Min(this.Volume, MaxVolume - neighbor.Volume));
-                if (transferAmount <= 0) return false;
-                
-                if (debug)
-                {
-                    WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: Transferring {transferAmount} volume from {Position} (vol:{Volume}) to {neighbor.Position} (vol:{neighbor.Volume})");
-                }
-                
-                neighbor.AddVolume(transferAmount);
-                Volume -= transferAmount; // Use the property setter
-                
-                if (debug)
-                {
-                    WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: After transfer - Source: {Volume}, Target: {neighbor.Volume}");
-                }
-                
-                // Make sure to register both tiles as active in the system
-                if (LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem)
-                {
-                    GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                    if (diffusionManager != null)
-                    {
-                        // Register this tile and the neighbor for active processing
-                        diffusionManager.RegisterActiveTile(Map, Position);
-                        diffusionManager.RegisterActiveTile(neighbor.Map, neighbor.Position);
-                        
-                        // Reset stability counters since they've changed
-                        this.ResetStabilityCounter();
-                        neighbor.ResetStabilityCounter();
-                    }
-                }
-                
-                return true;
+                WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: Transferring {transferAmount} volume from {Position} (vol:{Volume}) to {neighbor.Position} (vol:{neighbor.Volume}) [diff={diff}]");
             }
-            return false;
+
+            neighbor.AddVolume(transferAmount);
+            Volume -= transferAmount;
+
+            if (debug)
+            {
+                WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: After transfer - Source: {Volume}, Target: {neighbor.Volume}");
+            }
+
+            // Register both tiles as active
+            if (settings.useActiveTileSystem)
+            {
+                GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
+                if (diffusionManager != null)
+                {
+                    diffusionManager.RegisterActiveTile(Map, Position);
+                    diffusionManager.RegisterActiveTile(neighbor.Map, neighbor.Position);
+                    this.ResetStabilityCounter();
+                    neighbor.ResetStabilityCounter();
+                }
+            }
+
+            return true;
         }
         
         public override string GetInspectString()

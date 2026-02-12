@@ -27,7 +27,7 @@ namespace WaterSpringMod
         public int maxProcessedTilesPerChunk = 50; // Default: process up to 50 tiles per chunk
         public bool useCheckerboardPattern = true; // Default: enabled - alternates processing between chunks
 
-        public int minVolumeDifferenceForTransfer = 1; // Default: 1 unit minimum difference to transfer water
+        public int minVolumeDifferenceForTransfer = 2; // Default: 2 unit minimum difference to transfer water (equilibrium: diff/2)
         
     // Update frequency settings
         public bool useFrequencyBasedProcessing = false; // Default: disabled until Strategy 5 is fully implemented
@@ -170,7 +170,7 @@ namespace WaterSpringMod
             backflowMinDiffBonus = Mathf.Clamp(backflowMinDiffBonus, 0, 3);
 
             // Transfer threshold
-            minVolumeDifferenceForTransfer = Mathf.Clamp(minVolumeDifferenceForTransfer, 1, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
+            minVolumeDifferenceForTransfer = Mathf.Clamp(minVolumeDifferenceForTransfer, 2, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
 
             // Chunk processing
             chunkSize = Mathf.Clamp(chunkSize, 4, 64);
