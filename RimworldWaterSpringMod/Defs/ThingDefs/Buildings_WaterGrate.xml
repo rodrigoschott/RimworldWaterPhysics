@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-  <!-- Water Grate: blocks pawns, allows water flow -->
+  <!-- Water Grate: blocks pawns, allows water flow, seals rooms -->
   <ThingDef ParentName="BuildingBase">
     <defName>WS_Grate</defName>
     <label>water grate</label>
-    <description>A metal grate that allows water to flow through while blocking passage of pawns and animals.</description>
+    <description>A metal grate that allows water to flow through while blocking passage of pawns and animals. Seals the room against wind and weather.</description>
     <category>Building</category>
     <thingClass>Building</thingClass>
     <building>
       <isEdifice>true</isEdifice>
+      <canPlaceOverWall>true</canPlaceOverWall>
+      <ai_chillDestination>false</ai_chillDestination>
     </building>
     <altitudeLayer>Building</altitudeLayer>
     <selectable>true</selectable>
@@ -17,8 +19,12 @@
     <size>(1,1)</size>
     <passability>Impassable</passability>
     <fillPercent>1.0</fillPercent>
-    <coversFloor>false</coversFloor>
+    <coversFloor>true</coversFloor>
+    <holdsRoof>true</holdsRoof>
     <blockLight>false</blockLight>
+    <blockWind>true</blockWind>
+    <canOverlapZones>false</canOverlapZones>
+    <staticSunShadowHeight>1.0</staticSunShadowHeight>
     <constructionSkillPrerequisite>3</constructionSkillPrerequisite>
     <designationCategory>Structure</designationCategory>
     <terrainAffordanceNeeded IsNull="True" />
@@ -45,15 +51,16 @@
     </comps>
   </ThingDef>
 
-  <!-- Water Bars: blocks pawns, allows water flow -->
+  <!-- Water Bars: blocks pawns, allows water flow, does NOT seal rooms -->
   <ThingDef ParentName="BuildingBase">
     <defName>WS_Bars</defName>
     <label>water bars</label>
-    <description>Vertical bars that allow water to flow through while blocking passage of pawns and animals. Less sturdy than a grate but cheaper to build.</description>
+    <description>Vertical bars that allow water and air to flow through while blocking passage of pawns and animals. Does not seal the room — wind and weather pass through.</description>
     <category>Building</category>
     <thingClass>Building</thingClass>
     <building>
       <isEdifice>true</isEdifice>
+      <ai_chillDestination>false</ai_chillDestination>
     </building>
     <altitudeLayer>Building</altitudeLayer>
     <selectable>true</selectable>
@@ -62,7 +69,9 @@
     <passability>Impassable</passability>
     <fillPercent>1.0</fillPercent>
     <coversFloor>false</coversFloor>
+    <holdsRoof>false</holdsRoof>
     <blockLight>false</blockLight>
+    <blockWind>false</blockWind>
     <constructionSkillPrerequisite>2</constructionSkillPrerequisite>
     <designationCategory>Structure</designationCategory>
     <terrainAffordanceNeeded IsNull="True" />

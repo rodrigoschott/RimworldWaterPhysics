@@ -697,6 +697,12 @@ namespace WaterSpringMod.WaterSpring
                     bool neighborIsChannel = map.thingGrid.ThingAt<Building_WaterChannel>(neighbor) != null;
                     if (currentIsChannel != neighborIsChannel) continue;
 
+                    // Don't cross closed floodgates
+                    var fgCurrent = current.GetEdifice(map) as Building_WaterFloodgate;
+                    if (fgCurrent != null && !fgCurrent.IsOpen) continue;
+                    var fgNeighbor = neighbor.GetEdifice(map) as Building_WaterFloodgate;
+                    if (fgNeighbor != null && !fgNeighbor.IsOpen) continue;
+
                     region.Add(nWater);
                     frontier.Enqueue(neighbor);
 

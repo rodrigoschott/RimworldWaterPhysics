@@ -7,32 +7,33 @@
     <description>A vertical opening that connects to the level below. Water adjacent to or on this tile can flow straight down if a lower level exists.</description>
     <category>Building</category>
     <building>
-      <isEdifice>true</isEdifice>
+      <isEdifice>false</isEdifice>
+      <isInert>true</isInert>
+      <ai_chillDestination>false</ai_chillDestination>
     </building>
-  <thingClass>WaterSpringMod.WaterSpring.Building_WSHole</thingClass>
-    <altitudeLayer>BuildingOnTop</altitudeLayer>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WSHole</thingClass>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
     <selectable>true</selectable>
     <rotatable>false</rotatable>
     <size>(1,1)</size>
-  <passability>PassThroughOnly</passability>
+    <passability>PassThroughOnly</passability>
     <fillPercent>0</fillPercent>
     <coversFloor>false</coversFloor>
-    <pathCost>0</pathCost>
-    <constructionSkillPrerequisite>0</constructionSkillPrerequisite>
-  <designationCategory>Structure</designationCategory>
-  <terrainAffordanceNeeded IsNull="True" />
+    <pathCost>42</pathCost>
+    <constructionSkillPrerequisite>2</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
     <costList>
       <Steel>5</Steel>
     </costList>
     <statBases>
       <WorkToBuild>200</WorkToBuild>
       <MaxHitPoints>40</MaxHitPoints>
-      <Flammability>0.5</Flammability>
+      <Flammability>0</Flammability>
     </statBases>
     <graphicData>
-      <texPath>Things/Building/Natural/SteamGeyser</texPath>
+      <texPath>Things/Building/WS_Hole</texPath>
       <graphicClass>Graphic_Single</graphicClass>
-      <shaderType>Transparent</shaderType>
       <drawSize>(1,1)</drawSize>
     </graphicData>
     <comps>

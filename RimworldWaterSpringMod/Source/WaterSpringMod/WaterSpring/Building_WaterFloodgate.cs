@@ -4,51 +4,85 @@ using Verse;
 namespace WaterSpringMod.WaterSpring
 {
     /// <summary>
-    /// A floodgate that can be toggled open/closed via CompFlickable.
-    /// Closed = blocks water AND pawns. Open = water and pawns pass freely.
-    /// State changes trigger pathgrid recalculation and ReactivateInRadius.
+    /// A floodgate that extends Building_Door for proper pathfinding integration.
+    /// State is driven entirely by linked WS_Lever buildings via CompAffectedByFacilities.
+    /// Any linked lever ON = gate open. All OFF (or no levers) = gate closed.
+    /// Pawns can NEVER open the gate themselves.
     /// </summary>
-    public class Building_WaterFloodgate : Building
+    public class Building_WaterFloodgate : Building_Door
     {
+        private CompAffectedByFacilities facilityComp;
         private bool lastOpenState;
-        private CompFlickable flickComp;
 
-        public bool IsOpen => flickComp != null && flickComp.SwitchIsOn;
+        /// <summary>
+        /// Whether the gate is open (any linked lever is ON).
+        /// Used by FlowingWater.cs for water flow decisions.
+        /// </summary>
+        public bool IsOpen => AnyLeverOn();
+
+        /// <summary>
+        /// When gate is open, prevent auto-close by reporting as always-open.
+        /// </summary>
+        protected override bool AlwaysOpen => IsOpen;
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             base.SpawnSetup(map, respawningAfterLoad);
-            flickComp = GetComp<CompFlickable>();
+            facilityComp = GetComp<CompAffectedByFacilities>();
             lastOpenState = IsOpen;
+
+            // Sync door state to lever state on spawn
+            if (IsOpen && !Open)
+                DoorOpen();
         }
 
-        public override void TickRare()
+        /// <summary>
+        /// Pawns can NEVER open the gate themselves — only levers control it.
+        /// </summary>
+        public override bool PawnCanOpen(Pawn p) => false;
+
+        protected override void Tick()
         {
-            base.TickRare();
-            bool currentOpen = IsOpen;
-            if (currentOpen != lastOpenState)
+            base.Tick();
+
+            bool current = IsOpen;
+            if (current != lastOpenState)
             {
-                lastOpenState = currentOpen;
-                OnStateChanged();
+                lastOpenState = current;
+                if (current)
+                {
+                    DoorOpen();
+                }
+                else
+                {
+                    // Force close
+                    openInt = false;
+                    Map?.reachability.ClearCache();
+                }
+
+                // Wake water tiles around the gate
+                var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+                dm?.ReactivateInRadius(Map, Position);
             }
+
+            // Keep door synced with lever state
+            if (current && !Open)
+                DoorOpen();
         }
 
-        private void OnStateChanged()
+        private bool AnyLeverOn()
         {
-            if (Map == null) return;
+            if (facilityComp == null)
+                return false;
 
-            // Recalculate pathgrid so pawns can/can't walk through
-            Map.pathing.RecalculatePerceivedPathCostAt(Position);
+            foreach (var facility in facilityComp.LinkedFacilitiesListForReading)
+            {
+                var flick = facility.TryGetComp<CompFlickable>();
+                if (flick != null && flick.SwitchIsOn)
+                    return true;
+            }
 
-            // Wake nearby water tiles
-            var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
-            dm?.ReactivateInRadius(Map, Position);
-        }
-
-        // Open floodgate should not block pawns
-        public override bool BlocksPawn(Pawn p)
-        {
-            return !IsOpen;
+            return false;
         }
     }
 }

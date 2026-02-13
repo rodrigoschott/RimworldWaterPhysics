@@ -15,7 +15,21 @@ dotnet build RimworldWaterSpringMod/Source/WaterSpringMod/WaterSpringMod.csproj 
 - **Target**: .NET Framework 4.8 (`net48`)
 - **Dependencies**: `Krafs.Rimworld.Ref 1.6.4566` (RimWorld API), `Lib.Harmony 2.2.2`
 - **MultiFloors**: Compile-time reference (`Reference/1.6/Assemblies/MultiFloors.dll`), `Private=false` — not copied to output
+- **RimWorld Decompiled Source**: `Reference/1.6/RimWorldDecompiled/` — full decompiled RimWorld 1.6 C# source (namespaces: `RimWorld/`, `Verse/`)
 - **Debug defines**: `WATERPHYSICS_VERBOSE`, `WATERPHYSICS_DEV`
+
+## RimWorld Source Reference (IMPORTANT)
+
+**Always consult the decompiled RimWorld 1.6 source** at `RimworldWaterSpringMod/Reference/1.6/RimWorldDecompiled/` before:
+- Planning new features or writing specs — verify vanilla API signatures, default values, and behavior
+- Using vanilla comps, buildings, or systems — read the actual implementation, don't guess from memory
+- Debugging integration issues — check exact method signatures, property access, and default field values
+
+Key directories:
+- `RimWorld/` — Game logic (comps, buildings, jobs, AI, etc.)
+- `Verse/` — Engine layer (Things, Maps, defs, XML loading, etc.)
+
+Example: Before using `CompFacility`, read `RimWorld/CompFacility.cs` and `RimWorld/CompProperties_Facility.cs` to see that `requiresLOS` defaults to `true` and `linkableBuildings` is auto-populated via `ResolveReferences`.
 
 ## Architecture
 

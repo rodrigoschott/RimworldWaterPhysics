@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Lever: toggleable switch that controls linked floodgates -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Lever</defName>
+    <label>water lever</label>
+    <description>A lever that controls linked floodgates. A colonist must pull it to toggle connected gates open or closed. One lever can control up to 4 floodgates within range.</description>
+    <category>Building</category>
+    <thingClass>Building</thingClass>
+    <building>
+      <isEdifice>false</isEdifice>
+      <ai_chillDestination>false</ai_chillDestination>
+    </building>
+    <altitudeLayer>Building</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.15</fillPercent>
+    <constructionSkillPrerequisite>3</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
+    <costList>
+      <Steel>10</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>300</WorkToBuild>
+      <MaxHitPoints>50</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/Misc/PassiveCooler</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <comps>
+      <li Class="CompProperties_Flickable" />
+      <li Class="CompProperties_Facility">
+        <maxSimultaneous>4</maxSimultaneous>
+        <maxDistance>20</maxDistance>
+        <requiresLOS>false</requiresLOS>
+      </li>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+    <placeWorkers>
+      <li>PlaceWorker_ShowFacilitiesConnections</li>
+    </placeWorkers>
+    <drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>
+  </ThingDef>
+
+</Defs>

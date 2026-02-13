@@ -562,6 +562,9 @@ namespace WaterSpringMod.WaterSpring
                 if (doImmediate && processed < maxTiles && w.Volume > 1)
                 {
                     var srcChannel = map.thingGrid.ThingAt<Building_WaterChannel>(pos);
+                    // Don't transfer out of a closed floodgate
+                    var srcGate = pos.GetEdifice(map) as Building_WaterFloodgate;
+                    if (srcGate != null && !srcGate.IsOpen) continue;
                     // Try to move toward any valid neighbor
                     foreach (var d in GenAdj.CardinalDirections)
                     {
@@ -569,6 +572,9 @@ namespace WaterSpringMod.WaterSpring
                         if (!np.InBounds(map) || !IsCellPassableForWater(map, np)) continue;
                         // Don't transfer from channel to non-channel
                         if (srcChannel != null && map.thingGrid.ThingAt<Building_WaterChannel>(np) == null) continue;
+                        // Don't transfer into a closed floodgate
+                        var dstGate = np.GetEdifice(map) as Building_WaterFloodgate;
+                        if (dstGate != null && !dstGate.IsOpen) continue;
                         var nw = map.thingGrid.ThingAt<FlowingWater>(np);
                         if (nw == null)
                         {

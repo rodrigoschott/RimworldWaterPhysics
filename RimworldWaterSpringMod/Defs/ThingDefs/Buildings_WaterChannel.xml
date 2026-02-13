@@ -10,14 +10,18 @@
     <thingClass>WaterSpringMod.WaterSpring.Building_WaterChannel</thingClass>
     <building>
       <isEdifice>false</isEdifice>
+      <isInert>true</isInert>
+      <ai_chillDestination>false</ai_chillDestination>
     </building>
-    <altitudeLayer>BuildingOnTop</altitudeLayer>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
     <selectable>true</selectable>
     <rotatable>false</rotatable>
     <size>(1,1)</size>
-    <passability>PassThroughOnly</passability>
+    <passability>Standable</passability>
     <fillPercent>0.0</fillPercent>
+    <clearBuildingArea>false</clearBuildingArea>
     <coversFloor>false</coversFloor>
+    <neverMultiSelect>true</neverMultiSelect>
     <pathCost>14</pathCost>
     <constructionSkillPrerequisite>2</constructionSkillPrerequisite>
     <designationCategory>Structure</designationCategory>
