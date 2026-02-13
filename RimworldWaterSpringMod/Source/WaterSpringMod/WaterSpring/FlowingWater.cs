@@ -76,14 +76,18 @@ namespace WaterSpringMod.WaterSpring
                         }
                     }
                     
-                    // Destroy this water if volume is zero
+                    // Destroy this water if volume is zero — UNLESS it sits on a hole (drain receptor)
                     if (_volume <= 0 && Spawned && !Destroyed)
                     {
-                        // Before destroying, restore original terrain if needed
-                        TryRestoreOriginalTerrain();
-                        // If this tile is a hole or adjacent to one, wake upper maps because the lower outlet changed
-                        try { VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(Map, Position); } catch { }
-                        this.Destroy();
+                        bool isOnHole = Map != null && VerticalPortalBridge.IsHoleAt(Map, Position);
+                        if (!isOnHole)
+                        {
+                            // Before destroying, restore original terrain if needed
+                            TryRestoreOriginalTerrain();
+                            // If this tile is adjacent to a hole, wake upper maps because the lower outlet changed
+                            try { VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(Map, Position); } catch { }
+                            this.Destroy();
+                        }
                     }
                 }
             }
@@ -438,7 +442,11 @@ namespace WaterSpringMod.WaterSpring
         // Returns true if diffusion occurred, false otherwise
     public bool AttemptLocalDiffusion()
         {
-            if (Volume <= 1 || Map == null || !Spawned) return false;
+            if (Map == null || !Spawned) return false;
+            // Hole tiles drain even at volume 1 (aggressive gravity); others need volume >= 2
+            bool isOnHole = VerticalPortalBridge.IsHoleAt(Map, Position);
+            if (Volume <= 0 && !isOnHole) return false;
+            if (Volume <= 1 && !isOnHole) return false;
             var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
             bool debug = settings.debugModeEnabled;
             if (debug)
@@ -446,122 +454,34 @@ namespace WaterSpringMod.WaterSpring
                 WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Starting diffusion check for water at {Position} with volume {Volume}");
             }
             
-            // Only attempt to spread if we have enough volume
+            IntVec3 pos = Position;
+
+            // GRAVITY PRIORITY (no cooldown, no volume gate): holes drain every tick at ANY volume > 0
+            // Splash distribution: BFS from tile below, distribute across all reachable tiles with capacity
+            if (isOnHole && Volume > 0)
+            {
+                if (VerticalPortalBridge.TryGetLowerMap(Map, out var selfLower) && pos.InBounds(selfLower))
+                {
+                    bool splashed = PressurePropagation.TrySplashDistribute(
+                        this, selfLower, pos, this.Volume, settings, debug);
+                    if (splashed) return true;
+                }
+            }
+
+            // Horizontal diffusion + pressure require Volume > 1
             if (Volume > 1)
             {
                 // Check adjacent cells (cardinal directions only)
-                IntVec3 pos = Position;
                 // ⚠️ INCREASED from 8 to 12 to accommodate stairs+elevators+void portals
                 IntVec3[] validCells = new IntVec3[12];
-                FlowingWater[] existingWaters = new FlowingWater[12]; // parallel storage for targets (same or lower map)
-                Map[] targetMaps = new Map[12]; // track which map each target belongs to
-                IntVec3[] targetCells = new IntVec3[12]; // track target cell (same or lower map)
+                FlowingWater[] existingWaters = new FlowingWater[12];
+                Map[] targetMaps = new Map[12];
+                IntVec3[] targetCells = new IntVec3[12];
                 int validCount = 0;
-                
+
                 if (debug)
                 {
                     WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Scanning adjacent cells for water at {Position}");
-                }
-                
-                // GRAVITY PRIORITY: If current tile is a hole, bulk-transfer downward FIRST
-                if (VerticalPortalBridge.IsHoleAt(Map, pos))
-                {
-                    if (VerticalPortalBridge.TryGetLowerMap(Map, out var selfLower) && pos.InBounds(selfLower))
-                    {
-                        FlowingWater belowWater = selfLower.thingGrid.ThingAt<FlowingWater>(pos);
-                        int belowVol = belowWater?.Volume ?? 0;
-                        int belowCapacity = MaxVolume - belowVol;
-
-                        if (belowCapacity > 0)
-                        {
-                            // Bulk transfer: move as much as possible, keep at least 1 on source
-                            int transferAmount = Math.Min(this.Volume - 1, belowCapacity);
-                            if (transferAmount < 1) transferAmount = 1; // always move at least 1 if we have >1
-
-                            if (debug)
-                            {
-                                WaterSpringLogger.LogDebug($"[Gravity] self-hole at {pos}; bulk transfer {transferAmount} units down to map #{selfLower.uniqueID}");
-                            }
-
-                            if (belowWater != null)
-                            {
-                                // Existing water below — add volume directly
-                                belowWater.AddVolume(transferAmount);
-                                this.Volume -= transferAmount;
-                            }
-                            else
-                            {
-                                // Empty tile below — spawn new water
-                                ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
-                                if (waterDef != null)
-                                {
-                                    Thing newWater = ThingMaker.MakeThing(waterDef);
-                                    if (newWater is FlowingWater typed)
-                                    {
-                                        typed.Volume = 0;
-                                        GenSpawn.Spawn(newWater, pos, selfLower);
-                                        typed.AddVolume(transferAmount);
-                                        this.Volume -= transferAmount;
-                                    }
-                                }
-                            }
-
-                            // Register both tiles as active
-                            if (settings.useActiveTileSystem)
-                            {
-                                var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                dm?.RegisterActiveTile(this.Map, this.Position);
-                                dm?.RegisterActiveTile(selfLower, pos);
-                                this.ResetStabilityCounter();
-                                belowWater?.ResetStabilityCounter();
-                            }
-
-                            return true; // Gravity handled it — skip horizontal scan entirely
-                        }
-                        // belowCapacity == 0: tile below is full (7/7). Fall through to horizontal scan.
-                    }
-                }
-
-                // PRESSURE: If volume == MaxVolume, try BFS pressure propagation
-                if (settings.pressurePropagationEnabled && this.Volume >= MaxVolume)
-                {
-                    // Cooldown check
-                    if (pressureCooldownRemaining > 0)
-                    {
-                        pressureCooldownRemaining--;
-                    }
-                    else
-                    {
-                        // Check if all cardinal same-map neighbors are also full
-                        bool allNeighborsFull = true;
-                        foreach (IntVec3 dir in GenAdj.CardinalDirections)
-                        {
-                            IntVec3 adj = pos + dir;
-                            if (!adj.InBounds(Map)) continue;
-                            FlowingWater adjWater = Map.thingGrid.ThingAt<FlowingWater>(adj);
-                            if (adjWater == null || adjWater.Volume < MaxVolume)
-                            {
-                                allNeighborsFull = false;
-                                break;
-                            }
-                        }
-
-                        if (allNeighborsFull)
-                        {
-                            if (debug)
-                            {
-                                WaterSpringLogger.LogDebug($"[Pressure] All neighbors full at {pos}. Initiating BFS pressure propagation.");
-                            }
-
-                            bool pressured = PressurePropagation.TryPropagate(this, Map, settings, debug);
-                            if (pressured)
-                            {
-                                pressureCooldownRemaining = settings.pressureCooldownTicks;
-                                return true; // Pressure handled it
-                            }
-                            // If pressure finds no outlet, fall through to normal scan
-                        }
-                    }
                 }
 
                 // First pass: Find all valid cells and their contents
@@ -611,67 +531,14 @@ namespace WaterSpringMod.WaterSpring
                     }
 
                     // Check for WS_Hole building on neighbor (gravity shortcut)
+                    // Splash distribution: BFS from tile below the hole, distribute across all reachable tiles
                     if (VerticalPortalBridge.IsHoleAt(Map, adjacentCell))
                     {
                         if (VerticalPortalBridge.TryGetLowerMap(Map, out var lowerMap) && adjacentCell.InBounds(lowerMap))
                         {
-                            bool passable = adjacentCell.Walkable(lowerMap);
-                            if (!passable)
-                            {
-                                TerrainDef tLower = lowerMap.terrainGrid.TerrainAt(adjacentCell);
-                                passable = (tLower == TerrainDefOf.WaterShallow || tLower == TerrainDefOf.WaterDeep);
-                            }
-                            if (passable)
-                            {
-                                FlowingWater lowerWater = lowerMap.thingGrid.ThingAt<FlowingWater>(adjacentCell);
-                                int lowerVol = lowerWater?.Volume ?? 0;
-                                int lowerCap = MaxVolume - lowerVol;
-
-                                if (lowerCap > 0)
-                                {
-                                    // Gravity priority: bulk transfer down through neighbor hole
-                                    int gTransfer = Math.Min(this.Volume - 1, lowerCap);
-                                    if (gTransfer < 1) gTransfer = 1;
-
-                                    if (debug)
-                                    {
-                                        WaterSpringLogger.LogDebug($"[Gravity] neighbor-hole at {adjacentCell}; bulk transfer {gTransfer} units down to map #{lowerMap.uniqueID}");
-                                    }
-
-                                    if (lowerWater != null)
-                                    {
-                                        lowerWater.AddVolume(gTransfer);
-                                        this.Volume -= gTransfer;
-                                    }
-                                    else
-                                    {
-                                        ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
-                                        if (waterDef != null)
-                                        {
-                                            Thing nw = ThingMaker.MakeThing(waterDef);
-                                            if (nw is FlowingWater typed)
-                                            {
-                                                typed.Volume = 0;
-                                                GenSpawn.Spawn(nw, adjacentCell, lowerMap);
-                                                typed.AddVolume(gTransfer);
-                                                this.Volume -= gTransfer;
-                                            }
-                                        }
-                                    }
-
-                                    if (settings.useActiveTileSystem)
-                                    {
-                                        var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                        dm?.RegisterActiveTile(this.Map, this.Position);
-                                        dm?.RegisterActiveTile(lowerMap, adjacentCell);
-                                        this.ResetStabilityCounter();
-                                        lowerWater?.ResetStabilityCounter();
-                                    }
-
-                                    return true; // Gravity handled — skip rest
-                                }
-                                // Lower tile full — don't add as horizontal candidate either.
-                            }
+                            bool splashed = PressurePropagation.TrySplashDistribute(
+                                this, lowerMap, adjacentCell, this.Volume, settings, debug);
+                            if (splashed) return true;
                         }
                         continue; // Hole tile: always skip as same-map horizontal candidate
                     }
@@ -835,6 +702,31 @@ namespace WaterSpringMod.WaterSpring
                         WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: No valid adjacent cells found for water at {Position}");
                     }
                 }
+
+                // PRESSURE FALLBACK: If tile is at max volume and no normal transfers worked,
+                // try pressure BFS to find outlets through connected 7/7 tiles (including cross-map via holes).
+                // This fires for any stuck full tile: spring sources, tiles fed by gravity, etc.
+                if (settings.pressurePropagationEnabled && this.Volume >= MaxVolume)
+                {
+                    if (pressureCooldownRemaining > 0)
+                    {
+                        pressureCooldownRemaining--;
+                    }
+                    else
+                    {
+                        if (debug)
+                        {
+                            WaterSpringLogger.LogDebug($"[Pressure] Fallback: tile at {pos} is full with no transfers. Trying BFS.");
+                        }
+
+                        bool pressured = PressurePropagation.TryPropagate(this, Map, settings, debug);
+                        if (pressured)
+                        {
+                            pressureCooldownRemaining = settings.pressureCooldownTicks;
+                            return true;
+                        }
+                    }
+                }
             }
             
             return false; // No diffusion occurred
@@ -882,7 +774,7 @@ namespace WaterSpringMod.WaterSpring
         {
             var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
             bool isUpperLevel = MultiFloorsIntegration.IsAvailable && MultiFloorsIntegration.GetLevel(Map) > 0;
-            
+
             if (isUpperLevel)
             {
                 // On MF upper levels, foundations cover both terrain and low-altitude Things.
@@ -894,14 +786,29 @@ namespace WaterSpringMod.WaterSpring
                 UnityEngine.Graphics.DrawMesh(MeshPool.plane10, pos, UnityEngine.Quaternion.identity, mat, 0);
                 return;
             }
-            
+
             // Ground level: use terrain sync if enabled (natural water terrain look)
             if (s != null && s.syncTerrainToWaterVolume)
             {
                 return;
             }
-            
+
             base.DrawAt(drawLoc, flip);
+        }
+
+        // Volume overlay: draw volume number on every water tile (debug mode)
+        // DrawGUIOverlay is the correct hook for 2D text labels on the map.
+        public override void DrawGUIOverlay()
+        {
+            base.DrawGUIOverlay();
+            var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
+            if (s == null || !s.debugModeEnabled) return;
+            if (!Spawned || Map == null || Find.CurrentMap != Map) return;
+
+            // Only show when zoomed in enough to read labels (same threshold RimWorld uses for item labels)
+            if (Find.CameraDriver.CurrentZoom > CameraZoomRange.Close) return;
+
+            GenMapUI.DrawThingLabel(this, Volume.ToString(), new Color(1f, 1f, 1f, 0.9f));
         }
 
         // Compute band from current volume: 0 none, 1 shallow (1-4), 2 deep (5-7)

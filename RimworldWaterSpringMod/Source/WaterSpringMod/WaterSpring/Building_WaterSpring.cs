@@ -169,22 +169,41 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogDebug("SpawnFlowingWater: Adding volume to existing water. Current volume: " + oldVolume);
                 }
                 var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
-                if (s != null && s.springUseBacklog && existingWater.Volume >= FlowingWater.MaxVolume)
+                if (s != null && existingWater.Volume >= FlowingWater.MaxVolume)
                 {
-                    // Store backlog instead of losing water
-                    if (backlog < Math.Max(0, s.springBacklogCap))
+                    // Spring tile full — try pressure BFS to deliver the produced unit directly
+                    bool delivered = false;
+                    if (s.pressurePropagationEnabled)
                     {
-                        backlog++;
-                        if (WaterSpringLogger.DebugEnabled)
+                        delivered = PressurePropagation.TryPropagate(existingWater, Map, s, WaterSpringLogger.DebugEnabled);
+                        if (delivered)
                         {
-                            WaterSpringLogger.LogDebug("SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now " + backlog + "/" + s.springBacklogCap);
+                            // Pressure subtracted 1 from spring tile (7→6) and delivered to outlet.
+                            // Add the produced unit back to spring tile (6→7).
+                            existingWater.AddVolume(1);
+                            if (WaterSpringLogger.DebugEnabled)
+                            {
+                                WaterSpringLogger.LogDebug("SpawnFlowingWater: Delivered produced unit via pressure. Spring tile restored to " + existingWater.Volume);
+                            }
                         }
                     }
-                    else
+                    if (!delivered && s.springUseBacklog)
                     {
-                        if (WaterSpringLogger.DebugEnabled)
+                        // Pressure couldn't deliver — fall back to backlog
+                        if (backlog < Math.Max(0, s.springBacklogCap))
                         {
-                            WaterSpringLogger.LogDebug("SpawnFlowingWater: Backlog full (" + backlog + "), discarding produced water");
+                            backlog++;
+                            if (WaterSpringLogger.DebugEnabled)
+                            {
+                                WaterSpringLogger.LogDebug("SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now " + backlog + "/" + s.springBacklogCap);
+                            }
+                        }
+                        else
+                        {
+                            if (WaterSpringLogger.DebugEnabled)
+                            {
+                                WaterSpringLogger.LogDebug("SpawnFlowingWater: Backlog full (" + backlog + "), discarding produced water");
+                            }
                         }
                     }
                 }

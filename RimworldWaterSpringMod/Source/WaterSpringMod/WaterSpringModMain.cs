@@ -402,6 +402,16 @@ namespace WaterSpringMod
                         " levels", "How many levels up to propagate activation when water changes below.");
                     settings.maxVerticalPropagationDepth = (int)listingStandard.Slider(settings.maxVerticalPropagationDepth, 1, 10);
 
+                    // Gravity splash distribution
+                    listingStandard.Gap();
+                    listingStandard.Label("--- Gravity Splash Distribution ---");
+                    LabelDynamicInt(listingStandard, "Max Splash Outlets: ", settings.splashMaxOutlets, " tiles",
+                        tooltip: "Maximum candidate tiles that receive water from a single gravity splash event. Higher = wider spread.");
+                    settings.splashMaxOutlets = (int)listingStandard.Slider(settings.splashMaxOutlets, 1, 32);
+                    LabelDynamicInt(listingStandard, "Splash Max Depth: ", settings.splashMaxDepth, " tiles",
+                        tooltip: "Maximum BFS tiles explored per splash. Limits how far splash searches for outlets. Prevents scanning entire cave systems.");
+                    settings.splashMaxDepth = (int)listingStandard.Slider(settings.splashMaxDepth, 4, 128);
+
                     // Pressure propagation
                     listingStandard.Gap();
                     listingStandard.Label("--- Pressure Propagation (DF-Inspired) ---");
@@ -415,6 +425,21 @@ namespace WaterSpringMod
                         LabelDynamicInt(listingStandard, "Cooldown: ", settings.pressureCooldownTicks, " ticks",
                             tooltip: "Minimum ticks between pressure events on the same tile. Prevents BFS spam from active springs.");
                         settings.pressureCooldownTicks = (int)listingStandard.Slider(settings.pressureCooldownTicks, 0, 120);
+                    }
+
+                    // Global Equalization
+                    listingStandard.Gap();
+                    listingStandard.Label("--- Global Equalization ---");
+                    listingStandard.CheckboxLabeled("Enable periodic equalization", ref settings.equalizationEnabled,
+                        "Periodically scans all water regions and redistributes volumes to eliminate staircase gradients. Computes the maximum-entropy distribution so water truly seeks its own level.");
+                    if (settings.equalizationEnabled)
+                    {
+                        LabelDynamicInt(listingStandard, "Equalization Interval: ", settings.equalizationIntervalTicks, " ticks",
+                            tooltip: "How often the equalization pass runs. 60 ticks = ~1 second. Lower = faster leveling, more CPU.");
+                        settings.equalizationIntervalTicks = (int)listingStandard.Slider(settings.equalizationIntervalTicks, 10, 600);
+                        LabelDynamicInt(listingStandard, "Max Region Size: ", settings.equalizationMaxRegionSize, " tiles",
+                            tooltip: "Safety cap on BFS region size during equalization. Prevents scanning enormous bodies of water in a single pass.");
+                        settings.equalizationMaxRegionSize = (int)listingStandard.Slider(settings.equalizationMaxRegionSize, 16, 16384);
                     }
 
                     break;

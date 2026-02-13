@@ -75,8 +75,17 @@ namespace WaterSpringMod
 
     // Pressure propagation (DF-inspired)
     public bool pressurePropagationEnabled = true;
-    public int pressureMaxSearchDepth = 32;        // Max BFS tiles to explore
-    public int pressureCooldownTicks = 10;          // Min ticks between pressure events per tile
+    public int pressureMaxSearchDepth = 256;       // Max BFS tiles to explore
+    public int pressureCooldownTicks = 0;            // Min ticks between pressure events per tile (0 = every tick)
+
+    // Gravity splash distribution
+    public int splashMaxOutlets = 12;   // Max candidate tiles per splash
+    public int splashMaxDepth = 32;     // Max BFS tiles explored per splash
+
+    // Periodic equalization (entropy fix for staircase gradients)
+    public bool equalizationEnabled = true;
+    public int equalizationIntervalTicks = 60;       // Run every ~1 second
+    public int equalizationMaxRegionSize = 4096;     // Safety cap on BFS
 
         public override void ExposeData()
         {
@@ -145,8 +154,25 @@ namespace WaterSpringMod
             
             // Save/load pressure settings
             Scribe_Values.Look(ref pressurePropagationEnabled, "pressurePropagationEnabled", true);
-            Scribe_Values.Look(ref pressureMaxSearchDepth, "pressureMaxSearchDepth", 32);
-            Scribe_Values.Look(ref pressureCooldownTicks, "pressureCooldownTicks", 10);
+            Scribe_Values.Look(ref pressureMaxSearchDepth, "pressureMaxSearchDepth", 256);
+            Scribe_Values.Look(ref pressureCooldownTicks, "pressureCooldownTicks", 0);
+
+            // Save/load gravity splash settings
+            Scribe_Values.Look(ref splashMaxOutlets, "splashMaxOutlets", 12);
+            Scribe_Values.Look(ref splashMaxDepth, "splashMaxDepth", 16);
+
+            // Save/load equalization settings
+            Scribe_Values.Look(ref equalizationEnabled, "equalizationEnabled", true);
+            Scribe_Values.Look(ref equalizationIntervalTicks, "equalizationIntervalTicks", 60);
+            Scribe_Values.Look(ref equalizationMaxRegionSize, "equalizationMaxRegionSize", 4096);
+
+            // Migration: bump old default (32) to new default (256)
+            if (Scribe.mode == LoadSaveMode.LoadingVars && pressureMaxSearchDepth <= 32)
+                pressureMaxSearchDepth = 256;
+
+            // Migration: old default cooldown was 10, new is 0
+            if (Scribe.mode == LoadSaveMode.LoadingVars && pressureCooldownTicks >= 10)
+                pressureCooldownTicks = 0;
 
             // Sanitize values after loading/applying defaults
             ClampAndSanitize();
@@ -198,8 +224,16 @@ namespace WaterSpringMod
             maxVerticalPropagationDepth = Mathf.Clamp(maxVerticalPropagationDepth, 1, 10);
 
             // Pressure propagation
-            pressureMaxSearchDepth = Mathf.Clamp(pressureMaxSearchDepth, 4, 256);
+            pressureMaxSearchDepth = Mathf.Clamp(pressureMaxSearchDepth, 4, 4096);
             pressureCooldownTicks = Mathf.Clamp(pressureCooldownTicks, 0, 600);
+
+            // Gravity splash distribution
+            splashMaxOutlets = Mathf.Clamp(splashMaxOutlets, 1, 32);
+            splashMaxDepth = Mathf.Clamp(splashMaxDepth, 4, 128);
+
+            // Equalization
+            equalizationIntervalTicks = Mathf.Clamp(equalizationIntervalTicks, 10, 600);
+            equalizationMaxRegionSize = Mathf.Clamp(equalizationMaxRegionSize, 16, 16384);
         }
     }
 }

@@ -43,6 +43,9 @@ namespace WaterSpringMod.WaterSpring
     // Dedicated BFS structures for pressure propagation (separate from terrain-change BFS)
     internal readonly Queue<IntVec3> pressureBfsFrontier = new Queue<IntVec3>(64);
     internal readonly HashSet<IntVec3> pressureBfsVisited = new HashSet<IntVec3>();
+    // Equalization pass scratch buffers
+    private readonly HashSet<int> eqVisited = new HashSet<int>(1024);
+    private readonly List<IntVec3> eqPositionSnapshot = new List<IntVec3>(512);
     // Scratch list for drawing to avoid concurrent modification of sets during enumeration
     private readonly List<IntVec3> scratchDrawTiles = new List<IntVec3>(2048);
         
@@ -617,7 +620,13 @@ namespace WaterSpringMod.WaterSpring
             // Update tick counter for frequency-based processing
             tickCounter++;
             ticksSinceLastUpdate++;
-            
+
+            // Periodic equalization pass (entropy fix for staircase gradients)
+            if (Settings.equalizationEnabled && tickCounter % Settings.equalizationIntervalTicks == 0)
+            {
+                PerformEqualizationPass();
+            }
+
             // Delegate to frequency gate so global frequency/adaptive TPS are respected
             CheckProcessingFrequency();
         }
@@ -717,7 +726,38 @@ namespace WaterSpringMod.WaterSpring
         }
         
     // Multi-phase removed
-        
+
+        /// <summary>
+        /// Periodic equalization: iterate all FlowingWater on each map, BFS connected regions,
+        /// and redistribute to maximum-entropy distribution. Fixes staircase gradients.
+        /// </summary>
+        private void PerformEqualizationPass()
+        {
+            bool debug = Settings.debugModeEnabled;
+            ThingDef waterDef = DefDatabase<ThingDef>.GetNamed("FlowingWater", false);
+            if (waterDef == null) return;
+
+            foreach (Map map in Find.Maps)
+            {
+                eqVisited.Clear();
+
+                List<Thing> allWater = map.listerThings.ThingsOfDef(waterDef);
+                if (allWater == null || allWater.Count == 0) continue;
+
+                // Snapshot positions to avoid concurrent modification if Volume=0 triggers Destroy
+                eqPositionSnapshot.Clear();
+                for (int i = 0; i < allWater.Count; i++)
+                {
+                    eqPositionSnapshot.Add(allWater[i].Position);
+                }
+
+                for (int i = 0; i < eqPositionSnapshot.Count; i++)
+                {
+                    PressurePropagation.TryEqualizeRegion(map, eqPositionSnapshot[i], eqVisited, Settings, debug);
+                }
+            }
+        }
+
         // Process active chunks using normal (individual) method
         private void ProcessActiveChunksNormal(Map map)
         {
