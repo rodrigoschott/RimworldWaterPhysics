@@ -87,6 +87,14 @@ namespace WaterSpringMod
     public int equalizationIntervalTicks = 60;       // Run every ~1 second
     public int equalizationMaxRegionSize = 4096;     // Safety cap on BFS
 
+    // Vanilla water sink (#001)
+    public bool vanillaWaterSinkEnabled = true;      // Vanilla water cells absorb FlowingWater
+    public int vanillaWaterAbsorptionRate = 1;        // Units absorbed per tick (1-7)
+    public bool vanillaWaterPreventSpawn = true;      // Never spawn FlowingWater on vanilla water
+
+    // Channel flow restriction (#002)
+    public bool channelFlowRestrictionEnabled = true; // Channels restrict flow to their axis
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -166,6 +174,14 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref equalizationIntervalTicks, "equalizationIntervalTicks", 60);
             Scribe_Values.Look(ref equalizationMaxRegionSize, "equalizationMaxRegionSize", 4096);
 
+            // Save/load vanilla water sink settings
+            Scribe_Values.Look(ref vanillaWaterSinkEnabled, "vanillaWaterSinkEnabled", true);
+            Scribe_Values.Look(ref vanillaWaterAbsorptionRate, "vanillaWaterAbsorptionRate", 1);
+            Scribe_Values.Look(ref vanillaWaterPreventSpawn, "vanillaWaterPreventSpawn", true);
+
+            // Save/load channel settings
+            Scribe_Values.Look(ref channelFlowRestrictionEnabled, "channelFlowRestrictionEnabled", true);
+
             // Migration: bump old default (32) to new default (256)
             if (Scribe.mode == LoadSaveMode.LoadingVars && pressureMaxSearchDepth <= 32)
                 pressureMaxSearchDepth = 256;
@@ -234,6 +250,9 @@ namespace WaterSpringMod
             // Equalization
             equalizationIntervalTicks = Mathf.Clamp(equalizationIntervalTicks, 10, 600);
             equalizationMaxRegionSize = Mathf.Clamp(equalizationMaxRegionSize, 16, 16384);
+
+            // Vanilla water sink
+            vanillaWaterAbsorptionRate = Mathf.Clamp(vanillaWaterAbsorptionRate, 1, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
         }
     }
 }

@@ -247,12 +247,19 @@ namespace WaterSpringMod.WaterSpring
             // Force graphic update when spawned
             UpdateGraphic();
 
-            // Capture original terrain when first spawning
+            // Capture original terrain when first spawning.
+            // Guard: if current terrain is WaterShallow/WaterDeep, it may have been set by a
+            // previous FlowingWater's terrain sync — don't capture our own synced terrain as "original".
             if (map != null)
             {
                 if (originalTerrain == null)
                 {
-                    originalTerrain = map.terrainGrid.TerrainAt(Position);
+                    TerrainDef current = map.terrainGrid.TerrainAt(Position);
+                    if (current != TerrainDefOf.WaterShallow && current != TerrainDefOf.WaterDeep)
+                    {
+                        originalTerrain = current;
+                    }
+                    // else: leave null, TryRestoreOriginalTerrain will be a no-op
                 }
                 // Apply terrain based on current volume if setting is enabled
                 TrySyncTerrainToVolume();
@@ -468,6 +475,44 @@ namespace WaterSpringMod.WaterSpring
                 }
             }
 
+            // SINK PASS: Vanilla water terrain absorbs FlowingWater
+            // Only drain into NATURALLY occurring water terrain, not terrain we set via terrain sync.
+            // Never drain on tiles that have a spring (spring produces water, sink would fight it).
+            if (settings.vanillaWaterSinkEnabled && Volume > 0)
+            {
+                // Check self first — use originalTerrain to avoid draining into our own synced terrain.
+                // Also skip if a spring building is present on this tile.
+                bool selfHasSpring = Map.thingGrid.ThingAt<Building_WaterSpring>(pos) != null;
+                if (!selfHasSpring && originalTerrain != null && originalTerrain.IsWater)
+                {
+                    int drain = Math.Min(Volume, GetSinkRate(Map, pos, settings));
+                    Volume -= drain;
+                    if (debug) WaterSpringLogger.LogDebug($"[Sink] {Position} self-absorbed {drain} (on vanilla water, orig={originalTerrain.defName})");
+                    if (Volume <= 0) { this.Destroy(); return true; }
+                    return true;
+                }
+                // Check cardinal neighbors for vanilla water terrain
+                // Skip neighbors that have FlowingWater (their terrain may be synced by us)
+                // Skip neighbors that have a spring
+                foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                {
+                    if (Volume <= 0) break;
+                    IntVec3 adj = pos + dir;
+                    if (!adj.InBounds(Map)) continue;
+                    // If neighbor has FlowingWater or a spring, skip
+                    if (Map.thingGrid.ThingAt<FlowingWater>(adj) != null) continue;
+                    if (Map.thingGrid.ThingAt<Building_WaterSpring>(adj) != null) continue;
+                    if (IsNaturalWaterTerrain(Map, adj))
+                    {
+                        int drain = Math.Min(Volume, GetSinkRate(Map, adj, settings));
+                        Volume -= drain;
+                        if (debug) WaterSpringLogger.LogDebug($"[Sink] {Position} drained {drain} into vanilla water at {adj}");
+                        if (Volume <= 0) { this.Destroy(); return true; }
+                        return true;
+                    }
+                }
+            }
+
             // Horizontal diffusion + pressure require Volume > 1
             if (Volume > 1)
             {
@@ -552,16 +597,37 @@ namespace WaterSpringMod.WaterSpring
                         }
                         continue;
                     }
-                    
-                    // Check for solid buildings
-                    Building ed = adjacentCell.GetEdifice(Map);
-                    if (ed != null && ed.def != null && ed.def.fillPercent > 0.1f)
+
+                    // Channel direction filter: restrict flow to channel axis
+                    if (settings.channelFlowRestrictionEnabled && !IsFlowAllowedByChannel(pos, adjacentCell, neighbor, Volume, debug))
                     {
-                        if (debug)
-                        {
-                            WaterSpringLogger.LogDebug($"FlowingWater.AttemptLocalDiffusion: Cell {adjacentCell} has a solid building, skipping");
-                        }
                         continue;
+                    }
+
+                    // Check for solid buildings (allow water-passable ones like grates/bars)
+                    Building ed = adjacentCell.GetEdifice(Map);
+                    if (ed != null && ed.def != null)
+                    {
+                        // Floodgate: closed blocks water entirely
+                        var floodgate = ed as Building_WaterFloodgate;
+                        if (floodgate != null)
+                        {
+                            if (!floodgate.IsOpen)
+                            {
+                                if (debug) WaterSpringLogger.LogDebug($"FlowingWater: Cell {adjacentCell} has closed floodgate, skipping");
+                                continue;
+                            }
+                            // Open floodgate: allow through, skip fillPercent check
+                        }
+                        else if (ed.def.fillPercent > 0.1f)
+                        {
+                            var ext = ed.def.GetModExtension<WaterFlowExtension>();
+                            if (ext == null || !ext.waterPassable)
+                            {
+                                if (debug) WaterSpringLogger.LogDebug($"FlowingWater: Cell {adjacentCell} has a solid building, skipping");
+                                continue;
+                            }
+                        }
                     }
                     
                     // Look for existing water in this cell
@@ -603,6 +669,9 @@ namespace WaterSpringMod.WaterSpring
                         {
                             if (existingWaters[i] == null)
                             {
+                                // Never spawn FlowingWater on vanilla water terrain
+                                if (settings.vanillaWaterPreventSpawn && IsNaturalWaterTerrain(targetMaps[i] ?? Map, targetCells[i]))
+                                    continue;
                                 emptySeen++;
                                 if (Rand.Range(0, emptySeen) == 0) emptyIndex = i;
                             }
@@ -868,6 +937,48 @@ namespace WaterSpringMod.WaterSpring
             lastAppliedBand = 0;
         }
 
+        // Check if flow is allowed between two cells considering channel restrictions.
+        // Channel-to-channel: always allowed (water flows freely within the channel network).
+        // Channel-to-non-channel: always blocked in normal diffusion.
+        //   Overflow is handled by pressure propagation (separate code path).
+        // Non-channel-to-channel: always allowed (water can enter a channel from any direction).
+        private bool IsFlowAllowedByChannel(IntVec3 sourceCell, IntVec3 destCell, IntVec3 direction, int volume, bool debug)
+        {
+            var srcChannel = Map.thingGrid.ThingAt<Building_WaterChannel>(sourceCell);
+            var dstChannel = Map.thingGrid.ThingAt<Building_WaterChannel>(destCell);
+
+            // Channel→non-channel: blocked in normal diffusion.
+            // Overflow is handled by pressure propagation (separate code path).
+            if (srcChannel != null && dstChannel == null)
+            {
+                if (debug) WaterSpringLogger.LogDebug($"[Channel] Diffusion blocked: {sourceCell} → {destCell} (overflow via pressure only)");
+                return false;
+            }
+
+            return true;
+        }
+
+        // Get absorption rate based on water depth type: deep/ocean/moving = 2x, shallow/marsh = 1x
+        private static int GetSinkRate(Map map, IntVec3 cell, WaterSpringModSettings settings)
+        {
+            TerrainDef t = map.terrainGrid.TerrainAt(cell);
+            if (t == null) return settings.vanillaWaterAbsorptionRate;
+            // Deep/ocean/moving water absorbs at 2x the base rate
+            if (t == TerrainDefOf.WaterDeep || t == TerrainDefOf.WaterOceanDeep
+                || t == TerrainDefOf.WaterMovingShallow || t == TerrainDefOf.WaterMovingChestDeep)
+            {
+                return Math.Min(MaxVolume, settings.vanillaWaterAbsorptionRate * 2);
+            }
+            return settings.vanillaWaterAbsorptionRate;
+        }
+
+        // Check if a cell has vanilla/modded water terrain (river, lake, ocean, marsh, etc.)
+        private static bool IsNaturalWaterTerrain(Map map, IntVec3 cell)
+        {
+            TerrainDef t = map.terrainGrid.TerrainAt(cell);
+            return t != null && t.IsWater;
+        }
+
         // Determine if a cell is passable for water flow, treating water terrain as passable
         private bool IsCellPassableForWater(IntVec3 cell)
         {
@@ -875,7 +986,7 @@ namespace WaterSpringMod.WaterSpring
             {
                 // If not walkable due to water terrain, allow; otherwise, block
                 TerrainDef t = Map.terrainGrid.TerrainAt(cell);
-                if (t != null && (t == TerrainDefOf.WaterShallow || t == TerrainDefOf.WaterDeep))
+                if (t != null && t.IsWater)
                 {
                     return true;
                 }

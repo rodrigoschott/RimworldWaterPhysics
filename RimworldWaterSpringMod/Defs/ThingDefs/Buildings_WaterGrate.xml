@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Water Grate: blocks pawns, allows water flow -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Grate</defName>
+    <label>water grate</label>
+    <description>A metal grate that allows water to flow through while blocking passage of pawns and animals.</description>
+    <category>Building</category>
+    <thingClass>Building</thingClass>
+    <building>
+      <isEdifice>true</isEdifice>
+    </building>
+    <altitudeLayer>Building</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>true</rotatable>
+    <size>(1,1)</size>
+    <passability>Impassable</passability>
+    <fillPercent>1.0</fillPercent>
+    <coversFloor>false</coversFloor>
+    <blockLight>false</blockLight>
+    <constructionSkillPrerequisite>3</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
+    <costList>
+      <Steel>15</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>400</WorkToBuild>
+      <MaxHitPoints>100</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/Misc/TempControl/Vent</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.WaterFlowExtension">
+        <waterPassable>true</waterPassable>
+      </li>
+    </modExtensions>
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+  </ThingDef>
+
+  <!-- Water Bars: blocks pawns, allows water flow -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Bars</defName>
+    <label>water bars</label>
+    <description>Vertical bars that allow water to flow through while blocking passage of pawns and animals. Less sturdy than a grate but cheaper to build.</description>
+    <category>Building</category>
+    <thingClass>Building</thingClass>
+    <building>
+      <isEdifice>true</isEdifice>
+    </building>
+    <altitudeLayer>Building</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+    <passability>Impassable</passability>
+    <fillPercent>1.0</fillPercent>
+    <coversFloor>false</coversFloor>
+    <blockLight>false</blockLight>
+    <constructionSkillPrerequisite>2</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
+    <costList>
+      <Steel>10</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>300</WorkToBuild>
+      <MaxHitPoints>80</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/WS_Bars</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.WaterFlowExtension">
+        <waterPassable>true</waterPassable>
+      </li>
+    </modExtensions>
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+  </ThingDef>
+
+</Defs>

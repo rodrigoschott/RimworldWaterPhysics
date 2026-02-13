@@ -20,7 +20,7 @@
     <pathCost>0</pathCost>
     <constructionSkillPrerequisite>0</constructionSkillPrerequisite>
   <designationCategory>Structure</designationCategory>
-  <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+  <terrainAffordanceNeeded IsNull="True" />
     <costList>
       <Steel>5</Steel>
     </costList>
@@ -30,8 +30,9 @@
       <Flammability>0.5</Flammability>
     </statBases>
     <graphicData>
-      <texPath>Things/Building/WS_Hole</texPath>
+      <texPath>Things/Building/Natural/SteamGeyser</texPath>
       <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>Transparent</shaderType>
       <drawSize>(1,1)</drawSize>
     </graphicData>
     <comps>

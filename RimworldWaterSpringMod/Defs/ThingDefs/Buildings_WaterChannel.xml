@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Water Channel: pipe-like conduit for water, auto-connects to adjacent channels -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Channel</defName>
+    <label>water channel</label>
+    <description>A shallow trench that guides water flow. Channels automatically connect to adjacent channels, forming corners, T-junctions, and crosses. Water flows freely within the channel network but only overflows to non-channel tiles when completely full.</description>
+    <category>Building</category>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterChannel</thingClass>
+    <building>
+      <isEdifice>false</isEdifice>
+    </building>
+    <altitudeLayer>BuildingOnTop</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.0</fillPercent>
+    <coversFloor>false</coversFloor>
+    <pathCost>14</pathCost>
+    <constructionSkillPrerequisite>2</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
+    <costList>
+      <Steel>5</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>200</WorkToBuild>
+      <MaxHitPoints>60</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/WS_Channel_Atlas</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <linkType>Transmitter</linkType>
+      <linkFlags>
+        <li>Custom1</li>
+      </linkFlags>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+  </ThingDef>
+
+</Defs>

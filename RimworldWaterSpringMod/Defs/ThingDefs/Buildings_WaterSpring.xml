@@ -32,7 +32,7 @@
       <ComponentIndustrial>1</ComponentIndustrial>
     </costList>
     <constructEffect>ConstructMetal</constructEffect>
-    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <terrainAffordanceNeeded IsNull="True" />
     <placeWorkers>
       <li>PlaceWorker_PreventInteractionSpotOverlap</li>
     </placeWorkers>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Floodgate: toggleable gate that blocks or allows water flow -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Floodgate</defName>
+    <label>floodgate</label>
+    <description>A manually operated gate that can be opened or closed to control water flow. When closed, it blocks both water and pawns. When open, water and pawns pass freely.</description>
+    <category>Building</category>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterFloodgate</thingClass>
+    <building>
+      <isEdifice>true</isEdifice>
+    </building>
+    <altitudeLayer>Building</altitudeLayer>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>1.0</fillPercent>
+    <coversFloor>false</coversFloor>
+    <holdsRoof>false</holdsRoof>
+    <blockLight>false</blockLight>
+    <constructionSkillPrerequisite>4</constructionSkillPrerequisite>
+    <designationCategory>Structure</designationCategory>
+    <terrainAffordanceNeeded IsNull="True" />
+    <costList>
+      <Steel>25</Steel>
+      <ComponentIndustrial>1</ComponentIndustrial>
+    </costList>
+    <statBases>
+      <WorkToBuild>600</WorkToBuild>
+      <MaxHitPoints>150</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <graphicData>
+      <texPath>Things/Building/Door/DoorSimple_Mover</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <comps>
+      <li Class="CompProperties_Flickable" />
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+    <tickerType>Rare</tickerType>
+  </ThingDef>
+
+</Defs>

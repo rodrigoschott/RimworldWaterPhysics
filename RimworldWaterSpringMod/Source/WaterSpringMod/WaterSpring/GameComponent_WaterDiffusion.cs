@@ -561,11 +561,14 @@ namespace WaterSpringMod.WaterSpring
                 // Optionally attempt one immediate transfer to kickstart flow
                 if (doImmediate && processed < maxTiles && w.Volume > 1)
                 {
+                    var srcChannel = map.thingGrid.ThingAt<Building_WaterChannel>(pos);
                     // Try to move toward any valid neighbor
                     foreach (var d in GenAdj.CardinalDirections)
                     {
                         var np = pos + d;
                         if (!np.InBounds(map) || !IsCellPassableForWater(map, np)) continue;
+                        // Don't transfer from channel to non-channel
+                        if (srcChannel != null && map.thingGrid.ThingAt<Building_WaterChannel>(np) == null) continue;
                         var nw = map.thingGrid.ThingAt<FlowingWater>(np);
                         if (nw == null)
                         {
@@ -602,7 +605,7 @@ namespace WaterSpringMod.WaterSpring
         {
             if (cell.Walkable(map)) return true;
             var t = map.terrainGrid?.TerrainAt(cell);
-            if (t != null && (t == TerrainDefOf.WaterShallow || t == TerrainDefOf.WaterDeep)) return true;
+            if (t != null && t.IsWater) return true;
             return false;
         }
 

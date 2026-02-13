@@ -141,6 +141,24 @@ namespace WaterSpringMod
                         "When enabled, terrain under water tiles will be set to Shallow water for volumes 1–4 and Deep water for 5–7. When volume returns to 0, original terrain is restored.");
                     listingStandard.Gap();
 
+                    // Vanilla water sink settings
+                    listingStandard.CheckboxLabeled("Vanilla water absorbs FlowingWater (sink)", ref settings.vanillaWaterSinkEnabled,
+                        "When enabled, FlowingWater adjacent to vanilla water terrain (rivers, lakes, ocean) is drained into it.");
+                    if (settings.vanillaWaterSinkEnabled)
+                    {
+                        LabelDynamicInt(listingStandard, "Absorption Rate: ", settings.vanillaWaterAbsorptionRate, " unit(s) per tick",
+                            tooltip: "How many FlowingWater volume units are absorbed per tick when adjacent to vanilla water.");
+                        settings.vanillaWaterAbsorptionRate = (int)listingStandard.Slider(settings.vanillaWaterAbsorptionRate, 1, 7);
+                    }
+                    listingStandard.CheckboxLabeled("Prevent FlowingWater spawn on vanilla water", ref settings.vanillaWaterPreventSpawn,
+                        "When enabled, FlowingWater will never expand onto cells with vanilla water terrain (rivers, lakes, ocean).");
+                    listingStandard.Gap();
+
+                    // Channel flow restriction
+                    listingStandard.CheckboxLabeled("Enable channel flow restrictions", ref settings.channelFlowRestrictionEnabled,
+                        "When enabled, water channels restrict flow to their axis direction. Disable to let channels act as purely decorative.");
+                    listingStandard.Gap();
+
                     // Spring spawn interval
                     _tmpContent.text = "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval);
                     _tmpContent.tooltip = "Interval between spring spawns (ticks). Lower = faster water production; higher = slower.";

@@ -85,6 +85,15 @@ namespace WaterSpringMod.WaterSpring
             int maxDepth = settings.pressureMaxSearchDepth;
             int explored = 0;
 
+            // Channel-aware overflow: if source is on a channel, prefer channel outlets.
+            // Non-channel outlets are saved as fallback, used only if no channel outlet is found.
+            bool sourceIsChannel = bfsStartMap.thingGrid.ThingAt<Building_WaterChannel>(bfsStartCell) != null;
+            FlowingWater fallbackWater = null;
+            Map fallbackMap = null;
+            IntVec3 fallbackCell = default;
+            int fallbackExplored = 0;
+            bool fallbackIsEmpty = false;
+
             while (frontier.Count > 0 && explored < maxDepth)
             {
                 BfsNode current = frontier.Dequeue();
@@ -131,15 +140,29 @@ namespace WaterSpringMod.WaterSpring
                     if (!neighbor.Walkable(current.map))
                     {
                         TerrainDef t = current.map.terrainGrid.TerrainAt(neighbor);
-                        if (t != TerrainDefOf.WaterShallow && t != TerrainDefOf.WaterDeep)
+                        if (t == null || !t.IsWater)
                             continue;
                     }
 
+                    // Edifice check: floodgates, water-passable buildings (grates, bars)
                     Building edifice = neighbor.GetEdifice(current.map);
-                    if (edifice != null && edifice.def.fillPercent > 0.1f)
-                        continue;
+                    if (edifice != null)
+                    {
+                        var floodgate = edifice as Building_WaterFloodgate;
+                        if (floodgate != null)
+                        {
+                            if (!floodgate.IsOpen) continue;
+                        }
+                        else if (edifice.def.fillPercent > 0.1f)
+                        {
+                            var ext = edifice.def.GetModExtension<WaterFlowExtension>();
+                            if (ext == null || !ext.waterPassable)
+                                continue;
+                        }
+                    }
 
                     FlowingWater neighborWater = current.map.thingGrid.ThingAt<FlowingWater>(neighbor);
+                    bool outletIsChannel = current.map.thingGrid.ThingAt<Building_WaterChannel>(neighbor) != null;
 
                     if (neighborWater != null)
                     {
@@ -149,15 +172,54 @@ namespace WaterSpringMod.WaterSpring
                         }
                         else
                         {
+                            // Channel source + non-channel outlet → save as fallback, keep searching for channel outlets
+                            if (sourceIsChannel && !outletIsChannel)
+                            {
+                                if (fallbackWater == null)
+                                {
+                                    fallbackWater = neighborWater;
+                                    fallbackMap = current.map;
+                                    fallbackCell = neighbor;
+                                    fallbackExplored = explored;
+                                }
+                                continue;
+                            }
                             return DeliverToExisting(volumeSource, neighborWater, current.map, neighbor,
                                 diffusionManager, settings, debug, explored);
                         }
                     }
                     else
                     {
+                        // Channel source + non-channel outlet → save as fallback
+                        if (sourceIsChannel && !outletIsChannel)
+                        {
+                            if (!fallbackIsEmpty && fallbackWater == null)
+                            {
+                                fallbackIsEmpty = true;
+                                fallbackMap = current.map;
+                                fallbackCell = neighbor;
+                                fallbackExplored = explored;
+                            }
+                            continue;
+                        }
                         return DeliverToEmpty(volumeSource, current.map, neighbor,
                             diffusionManager, settings, debug, explored);
                     }
+                }
+            }
+
+            // Channel source: no channel outlet found, use non-channel fallback if available
+            if (sourceIsChannel)
+            {
+                if (fallbackWater != null)
+                {
+                    return DeliverToExisting(volumeSource, fallbackWater, fallbackMap, fallbackCell,
+                        diffusionManager, settings, debug, fallbackExplored);
+                }
+                if (fallbackIsEmpty && fallbackMap != null)
+                {
+                    return DeliverToEmpty(volumeSource, fallbackMap, fallbackCell,
+                        diffusionManager, settings, debug, fallbackExplored);
                 }
             }
 
@@ -492,13 +554,26 @@ namespace WaterSpringMod.WaterSpring
             if (!cell.Walkable(map))
             {
                 TerrainDef t = map.terrainGrid.TerrainAt(cell);
-                if (t != TerrainDefOf.WaterShallow && t != TerrainDefOf.WaterDeep)
+                if (t == null || !t.IsWater)
                     return;
             }
 
+            // Edifice check: floodgates, water-passable buildings
             Building edifice = cell.GetEdifice(map);
-            if (edifice != null && edifice.def.fillPercent > 0.1f)
-                return;
+            if (edifice != null)
+            {
+                var floodgate = edifice as Building_WaterFloodgate;
+                if (floodgate != null)
+                {
+                    if (!floodgate.IsOpen) return;
+                }
+                else if (edifice.def.fillPercent > 0.1f)
+                {
+                    var ext = edifice.def.GetModExtension<WaterFlowExtension>();
+                    if (ext == null || !ext.waterPassable)
+                        return;
+                }
+            }
 
             FlowingWater water = map.thingGrid.ThingAt<FlowingWater>(cell);
 
@@ -537,12 +612,21 @@ namespace WaterSpringMod.WaterSpring
             if (!cell.Walkable(map))
             {
                 TerrainDef t = map.terrainGrid.TerrainAt(cell);
-                if (t != TerrainDefOf.WaterShallow && t != TerrainDefOf.WaterDeep)
+                if (t == null || !t.IsWater)
                     return false;
             }
             Building edifice = cell.GetEdifice(map);
-            if (edifice != null && edifice.def.fillPercent > 0.1f)
-                return false;
+            if (edifice != null)
+            {
+                var floodgate = edifice as Building_WaterFloodgate;
+                if (floodgate != null)
+                    return floodgate.IsOpen;
+                if (edifice.def.fillPercent > 0.1f)
+                {
+                    var ext = edifice.def.GetModExtension<WaterFlowExtension>();
+                    return ext != null && ext.waterPassable;
+                }
+            }
             return true;
         }
 
@@ -607,6 +691,11 @@ namespace WaterSpringMod.WaterSpring
 
                     FlowingWater nWater = map.thingGrid.ThingAt<FlowingWater>(neighbor);
                     if (nWater == null || !nWater.Spawned) continue;
+
+                    // Don't cross channel boundaries — channels equalize separately
+                    bool currentIsChannel = map.thingGrid.ThingAt<Building_WaterChannel>(current) != null;
+                    bool neighborIsChannel = map.thingGrid.ThingAt<Building_WaterChannel>(neighbor) != null;
+                    if (currentIsChannel != neighborIsChannel) continue;
 
                     region.Add(nWater);
                     frontier.Enqueue(neighbor);
