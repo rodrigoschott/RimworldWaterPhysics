@@ -11,7 +11,12 @@ namespace WaterSpringMod.WaterSpring
     {
         // Main chunk-based storage
         private readonly Dictionary<ChunkCoordinate, HashSet<IntVec3>> waterTilesByChunk;
-        
+
+        // Per-chunk dirty flags: only dirty chunks get processed
+        // DF double-buffer: dirtyChunksTwice guarantees at least 2 processing cycles after disturbance
+        private readonly HashSet<ChunkCoordinate> dirtyChunks = new HashSet<ChunkCoordinate>();
+        private readonly HashSet<ChunkCoordinate> dirtyChunksTwice = new HashSet<ChunkCoordinate>();
+
         // Cache of FlowingWater instances by position for faster lookups
         private readonly Dictionary<IntVec3, FlowingWater> waterCache;
         
@@ -52,7 +57,10 @@ namespace WaterSpringMod.WaterSpring
             }
             
             tilesInChunk.Add(pos);
-            
+
+            // Auto-mark the chunk dirty when a tile is added
+            MarkChunkDirty(chunk);
+
             // Update the cache
             waterCache[pos] = water;
         }
@@ -149,6 +157,43 @@ namespace WaterSpringMod.WaterSpring
             return count;
         }
         
+        public void MarkChunkDirty(ChunkCoordinate chunk)
+        {
+            dirtyChunks.Add(chunk);
+            dirtyChunksTwice.Add(chunk); // DF double-buffer: guarantee at least 2 processing cycles
+        }
+
+        public void MarkChunkDirtyAt(IntVec3 pos)
+        {
+            MarkChunkDirty(ChunkCoordinate.FromPosition(pos, chunkSize));
+        }
+
+        /// DF double-buffer: first clear attempt removes the "twice" flag but keeps chunk dirty.
+        /// Second clear (next cycle) actually removes the chunk from dirty set.
+        public void ClearChunkDirty(ChunkCoordinate chunk)
+        {
+            if (dirtyChunksTwice.Remove(chunk))
+            {
+                // Double-buffer: keep dirty for one more processing pass
+                return;
+            }
+            dirtyChunks.Remove(chunk);
+        }
+
+        public HashSet<ChunkCoordinate> GetDirtyChunks() => dirtyChunks;
+
+        public int DirtyChunkCount => dirtyChunks.Count;
+
+        /// Mark all chunks that contain water tiles as dirty (used on init/load)
+        public void MarkAllDirty()
+        {
+            foreach (var kvp in waterTilesByChunk)
+            {
+                if (kvp.Value.Count > 0)
+                    dirtyChunks.Add(kvp.Key);
+            }
+        }
+
         /// <summary>
         /// Clear the spatial index
         /// </summary>
@@ -156,6 +201,8 @@ namespace WaterSpringMod.WaterSpring
         {
             waterTilesByChunk.Clear();
             waterCache.Clear();
+            dirtyChunks.Clear();
+            dirtyChunksTwice.Clear();
         }
         
         /// <summary>

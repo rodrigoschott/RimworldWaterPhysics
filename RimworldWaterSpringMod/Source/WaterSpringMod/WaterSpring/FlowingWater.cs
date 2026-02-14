@@ -10,14 +10,17 @@ namespace WaterSpringMod.WaterSpring
     {
         private int _volume = 1; // Internal volume storage
         public const int MaxVolume = 7; // Maximum volume for the tile
-    public const int MaxStability = 10000; // Upper hard ceiling; actual cap is configurable via settings
     // Terrain sync state
     private TerrainDef originalTerrain; // cached original terrain to restore when volume goes to 0
     private int lastAppliedBand = -1;   // -1 unknown, 0 none/original, 1 shallow, 2 deep
-        
-        // Stability tracking for the active tile system
-        private int stabilityCounter = 0;
-        private bool isExplicitlyDeregistered = false; // Flag to prevent re-registration when volume changes but tile is stable
+
+        // DF-style static flag: tile is static when no transfer is possible
+        // DF uses immediate static (no counter) — tile goes static after ONE tick of no transfer
+        private bool isStatic = false;
+        public bool IsStatic => isStatic;
+        public void SetStatic() { isStatic = true; }
+        public void ClearStatic() { isStatic = false; }
+        public bool IsSpringSourceTile => isSpringSourceTile;
         
         // Track volume changes for debugging purposes
         private int previousVolume = 1;
@@ -50,17 +53,14 @@ namespace WaterSpringMod.WaterSpring
                     }
                     if (Spawned && Map != null)
                     {
-                        GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                        if (diffusionManager != null)
+                        var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+                        if (dm != null)
                         {
-                            // Wake this tile
-                            diffusionManager.RegisterActiveTile(Map, Position);
-                            ResetStabilityCounter();
-                            // Clear explicit deregister so this tile gets processed again
-                            isExplicitlyDeregistered = false;
+                            // Mark this tile's chunk dirty + clear static
+                            isStatic = false;
+                            dm.MarkChunkDirtyAt(Map, Position);
 
-                            // DF rule: "STABLE -> FLOWING when adjacent tile changes depth"
-                            // Wake all cardinal neighbors so they can re-evaluate transfers
+                            // Wake cardinal neighbors: clear their static flags + dirty their chunks
                             foreach (IntVec3 dir in GenAdj.CardinalDirections)
                             {
                                 IntVec3 adj = Position + dir;
@@ -68,9 +68,8 @@ namespace WaterSpringMod.WaterSpring
                                 FlowingWater adjWater = Map.thingGrid.ThingAt<FlowingWater>(adj);
                                 if (adjWater != null && adjWater.Spawned && !adjWater.Destroyed)
                                 {
-                                    adjWater.isExplicitlyDeregistered = false;
-                                    adjWater.ResetStabilityCounter();
-                                    diffusionManager.RegisterActiveTile(Map, adj);
+                                    adjWater.isStatic = false;
+                                    dm.MarkChunkDirtyAt(Map, adj);
                                 }
                             }
                         }
@@ -93,126 +92,6 @@ namespace WaterSpringMod.WaterSpring
             }
         }
         
-        // Stability counter properties for the active tile system
-        public int StabilityCounter => stabilityCounter;
-        public bool IsExplicitlyDeregistered => isExplicitlyDeregistered;
-        
-        public void IncrementStabilityCounter()
-        {
-            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            bool debug = settings.debugModeEnabled;
-            if (stabilityCounter < MaxStability)
-            {
-                stabilityCounter++;
-                if (debug)
-                {
-                    WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} stability now {stabilityCounter}");
-                }
-                
-                // Determine configured cap and clamp
-                int cap = Mathf.Clamp(settings.stabilityCap, 1, MaxStability);
-                stabilityCounter = Math.Min(stabilityCounter, cap);
-
-                // Auto-mark as stable when reaching configured cap
-                var s = settings;
-                bool neverStableSpring = isSpringSourceTile && s.springNeverStabilize;
-                if (!neverStableSpring && stabilityCounter >= cap)
-                {
-                    MarkAsStable();
-                    if (debug)
-                    {
-                        WaterSpringLogger.LogDebug($"FlowingWater.IncrementStabilityCounter: Water at {Position} reached stability cap ({cap}) and is now fully deactivated");
-                    }
-                }
-            }
-        }
-        
-        public void ResetStabilityCounter()
-        {
-            stabilityCounter = 0;
-            // Do NOT clear explicit deregistration here; Reactivate() is responsible for that.
-            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            if (settings.debugModeEnabled)
-            {
-                WaterSpringLogger.LogDebug($"FlowingWater.ResetStabilityCounter: Water at {Position} stability reset to 0");
-            }
-        }
-        
-        // Helper method to check if the water is considered stable
-        public bool IsStable()
-        {
-            // If we've reached the configured cap, always return true
-            var s = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            if (isSpringSourceTile && s.springNeverStabilize)
-            {
-                return false;
-            }
-            int cap = Mathf.Clamp(s.stabilityCap, 1, MaxStability);
-            if (stabilityCounter >= cap) return true;
-            
-            // Otherwise, not stable yet
-            return false;
-        }
-        
-        // Get the processing frequency based on stability level
-        public int GetProcessingInterval()
-        {
-            WaterSpringModSettings settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            
-            // If water is fully stable (at configured cap), return a very large value to effectively disable processing
-            int capCheck = Mathf.Clamp(settings.stabilityCap, 1, MaxStability);
-            bool neverStableSpring = isSpringSourceTile && settings.springNeverStabilize;
-            if (!neverStableSpring && (stabilityCounter >= capCheck || isExplicitlyDeregistered))
-            {
-                return int.MaxValue; // Effectively never process
-            }
-            
-            // Strategy 2 removed: always use base path (scheduler spaces work with local intervals)
-            return 1;
-        }
-        
-        // New method to explicitly deregister this water from active processing
-        public void MarkAsStable()
-        {
-            if (!isExplicitlyDeregistered)
-            {
-                isExplicitlyDeregistered = true;
-                var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-                if (settings.debugModeEnabled)
-                {
-                    WaterSpringLogger.LogDebug($"FlowingWater.MarkAsStable: Water at {Position} marked as stable and will not auto-register");
-                }
-                
-                // Unregister from the active tile system
-                GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                if (diffusionManager != null && Map != null && Spawned)
-                {
-                    diffusionManager.UnregisterActiveTile(Map, Position);
-                }
-            }
-        }
-        
-        // Method to reactivate a stable water tile when external conditions change
-        public void Reactivate()
-        {
-            if (!isExplicitlyDeregistered) return;
-            isExplicitlyDeregistered = false;
-            ResetStabilityCounter();
-            // Ensure immediate processing next tick
-            ticksUntilNextCheck = 0;
-            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            if (settings.debugModeEnabled)
-            {
-                WaterSpringLogger.LogDebug($"FlowingWater.Reactivate: Water at {Position} reactivated");
-            }
-            
-            // Register with the active tile system
-            GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-            if (diffusionManager != null && Map != null && Spawned)
-            {
-                diffusionManager.RegisterActiveTile(Map, Position);
-            }
-        }
         
         private int lastDrawnVolume = -1;
         public int ticksUntilNextCheck = 0; // Timer for local diffusion checks - public for access by GameComponent_WaterDiffusion
@@ -229,8 +108,14 @@ namespace WaterSpringMod.WaterSpring
             base.ExposeData();
             Scribe_Values.Look(ref _volume, "volume", 1);
             Scribe_Values.Look(ref ticksUntilNextCheck, "ticksUntilNextCheck", 0);
-            Scribe_Values.Look(ref stabilityCounter, "stabilityCounter", 0);
-            Scribe_Values.Look(ref isExplicitlyDeregistered, "isExplicitlyDeregistered", false);
+            // Migration: read old field name first; if present, use as isStatic
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                bool migrated = false;
+                Scribe_Values.Look(ref migrated, "isExplicitlyDeregistered", false);
+                if (migrated) isStatic = true;
+            }
+            Scribe_Values.Look(ref isStatic, "isStatic", false);
             Scribe_Values.Look(ref tickCounter, "tickCounter", 0);
             Scribe_Values.Look(ref previousVolume, "previousVolume", 1);
             Scribe_Values.Look(ref volumeChangeCounter, "volumeChangeCounter", 0);
@@ -279,12 +164,13 @@ namespace WaterSpringMod.WaterSpring
                 nextEvapCheckTick = now + settings.evaporationIntervalTicks + phase;
             }
             
-            // Register with the active tile system
-            GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-            if (diffusionManager != null)
+            // Register in spatial index, mark chunk dirty, and ensure not static
+            var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+            if (dm != null)
             {
-                diffusionManager.RegisterActiveTile(map, Position);
-                ResetStabilityCounter();
+                dm.GetSpatialIndex(map)?.RegisterWaterTile(this);
+                dm.MarkChunkDirtyAt(map, Position);
+                isStatic = false;
             }
         }
         
@@ -317,13 +203,14 @@ namespace WaterSpringMod.WaterSpring
         
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
-            // Unregister from active tile system when despawned
-            GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-            if (diffusionManager != null)
+            // Unregister from spatial index and dirty the chunk
+            var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
+            if (dm != null && Map != null)
             {
-                diffusionManager.UnregisterActiveTile(Map, Position);
+                dm.GetSpatialIndex(Map)?.UnregisterWaterTile(Position);
+                dm.MarkChunkDirtyAt(Map, Position);
             }
-            
+
             base.DeSpawn(mode);
         }
         
@@ -348,44 +235,8 @@ namespace WaterSpringMod.WaterSpring
             // Increment the tick counter for tiered processing
             tickCounter++;
             
-            bool useActiveTiles = LoadedModManager.GetMod<WaterSpringModMain>().settings.useActiveTileSystem;
-            var settings = LoadedModManager.GetMod<WaterSpringModMain>().settings;
-            
-            // Handle local water diffusion within the water entity itself
-            // Skip diffusion logic if using active tile system, as it will be handled by GameComponent_WaterDiffusion
-            if (!useActiveTiles)
-            {
-                // Original non-active tile system behavior
-                ticksUntilNextCheck--;
-                if (ticksUntilNextCheck <= 0)
-                {
-                    bool diffusionOccurred = AttemptLocalDiffusion();
-                    
-                    // Reset timer using settings
-                    int minI = Mathf.Max(1, settings.localCheckIntervalMin);
-                    int maxI = Mathf.Max(minI, settings.localCheckIntervalMax);
-                    ticksUntilNextCheck = Rand.Range(minI, maxI);
-                }
-            }
-            else
-            {
-                // For active tile system, we only count down the timer
-                // The actual processing happens in GameComponent_WaterDiffusion
-                if (ticksUntilNextCheck > 0)
-                {
-                    ticksUntilNextCheck--;
-                }
-                
-                // When timer reaches zero, only register if not stable and not explicitly deregistered
-                if (ticksUntilNextCheck <= 0)
-                {
-                    if (!IsStable() && !isExplicitlyDeregistered)
-                    {
-                        GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                        diffusionManager?.RegisterActiveTile(Map, Position);
-                    }
-                }
-            }
+            // Diffusion is handled by GameComponent_WaterDiffusion via dirty-chunk processing.
+            // Individual Tick() only counts down the timer.
 
             // Evaporation check (very cheap per tick)
             var s = LoadedModManager.GetMod<WaterSpringModMain>()?.settings;
@@ -403,8 +254,8 @@ namespace WaterSpringMod.WaterSpring
                 {
                     // Schedule next
                     nextEvapCheckTick = tickNow + Mathf.Max(1, s.evaporationIntervalTicks);
-                    // Only stable tiles evaporate
-                    if (IsStable())
+                    // Only static tiles evaporate
+                    if (isStatic)
                     {
                         bool roofed = Map.roofGrid.Roofed(Position);
                         if (!(s.evaporationOnlyUnroofed && roofed))
@@ -419,16 +270,10 @@ namespace WaterSpringMod.WaterSpring
                                     if (Volume > 0)
                                     {
                                         Volume = Volume - 1;
-                                        // Reactivate tile to resume processing only if still present
+                                        // Volume setter handles dirtying chunks and clearing static
+                                        // Propagate upward in case this affects vertical flow through holes
                                         if (!Destroyed && Volume > 0)
                                         {
-                                            // Wake this tile
-                                            Reactivate();
-                                            // Nudge neighbors and a small radius to resume diffusion promptly
-                                            var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
-                                            dm?.ActivateNeighbors(Map, Position);
-                                            dm?.ReactivateInRadius(Map, Position);
-                                            // Propagate upward in case this affects vertical flow through holes
                                             try { VerticalPortalBridge.PropagateVerticalActivationForCellAndCardinals(Map, Position); } catch { }
                                         }
                                         // Optional: visual flash in debug
@@ -701,15 +546,7 @@ namespace WaterSpringMod.WaterSpring
                                         typedWater.AddVolume(expAmount);
                                         this.Volume -= expAmount;
                                         anyTransferred = true;
-
-                                        if (settings.useActiveTileSystem)
-                                        {
-                                            var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                            dm?.RegisterActiveTile(this.Map, this.Position);
-                                            dm?.RegisterActiveTile(destMap, destCell);
-                                            this.ResetStabilityCounter();
-                                            typedWater.ResetStabilityCounter();
-                                        }
+                                        // Volume setter handles dirtying chunks + clearing static
                                     }
                                 }
                             }
@@ -741,16 +578,7 @@ namespace WaterSpringMod.WaterSpring
                             nw.AddVolume(transferAmount);
                             this.Volume -= transferAmount;
                             anyTransferred = true;
-
-                            // Register both tiles as active
-                            if (settings.useActiveTileSystem)
-                            {
-                                var dm = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                                dm?.RegisterActiveTile(this.Map, this.Position);
-                                dm?.RegisterActiveTile(targetMaps[i], targetCells[i]);
-                                this.ResetStabilityCounter();
-                                nw.ResetStabilityCounter();
-                            }
+                            // Volume setter handles dirtying chunks + clearing static
                         }
                     }
 
@@ -1025,23 +853,11 @@ namespace WaterSpringMod.WaterSpring
 
             neighbor.AddVolume(transferAmount);
             Volume -= transferAmount;
+            // Volume setter handles dirtying chunks + clearing static
 
             if (debug)
             {
                 WaterSpringLogger.LogDebug($"FlowingWater.TransferVolume: After transfer - Source: {Volume}, Target: {neighbor.Volume}");
-            }
-
-            // Register both tiles as active
-            if (settings.useActiveTileSystem)
-            {
-                GameComponent_WaterDiffusion diffusionManager = Current.Game.GetComponent<GameComponent_WaterDiffusion>();
-                if (diffusionManager != null)
-                {
-                    diffusionManager.RegisterActiveTile(Map, Position);
-                    diffusionManager.RegisterActiveTile(neighbor.Map, neighbor.Position);
-                    this.ResetStabilityCounter();
-                    neighbor.ResetStabilityCounter();
-                }
             }
 
             return true;
@@ -1061,33 +877,11 @@ namespace WaterSpringMod.WaterSpring
             if (sb.Length > 0) sb.Append('\n');
             sb.Append("Water volume: ").Append(Volume).Append('/').Append(MaxVolume);
 
-            // Stability info when active tile system is enabled
-            var mod = LoadedModManager.GetMod<WaterSpringModMain>();
-            var settings = mod?.settings;
-            if (settings != null && settings.useActiveTileSystem)
+            // Static/active status
+            sb.Append('\n').Append("Static: ").Append(isStatic ? "yes" : "no");
+            if (isSpringSourceTile)
             {
-                int cap = Mathf.Clamp(settings.stabilityCap, 1, MaxStability);
-                sb.Append('\n').Append("Stability: ").Append(stabilityCounter).Append('/').Append(cap);
-                if (isSpringSourceTile && settings.springNeverStabilize)
-                {
-                    sb.Append(" (spring source)");
-                }
-                if (stabilityCounter >= MaxStability)
-                {
-                    sb.Append(" (Fully Stable)");
-                }
-                else if (isExplicitlyDeregistered)
-                {
-                    sb.Append(" (Stable)");
-                }
-
-                // Volume change history for debugging
-                sb.Append('\n').Append("Previous vol: ").Append(previousVolume)
-                  .Append(", Changes: ").Append(volumeChangeCounter);
-                if (volumeChangeCounter > 0)
-                {
-                    sb.Append(", Time since last: ").Append(ticksSinceLastChange).Append(" ticks");
-                }
+                sb.Append(" (spring source)");
             }
 
             return sb.ToString();
@@ -1099,8 +893,7 @@ namespace WaterSpringMod.WaterSpring
             isSpringSourceTile = true;
             if (neverStabilize)
             {
-                ResetStabilityCounter();
-                isExplicitlyDeregistered = false;
+                isStatic = false;
             }
         }
     }

@@ -23,7 +23,7 @@ namespace WaterSpringMod
         private static readonly GUIContent GC_S1_Header = new GUIContent("<color=yellow>Strategy 1: Active Tile Management</color>");
         private static readonly GUIContent GC_S1_DiffusionRules = new GUIContent("<color=yellow>Diffusion Rules</color>");
         private static readonly GUIContent GC_S1_SpringBehavior = new GUIContent("<color=yellow>Spring Behavior</color>");
-        private static readonly GUIContent GC_S1_Reactivation = new GUIContent("<color=yellow>Reactivation Wave</color>");
+        // GC_S1_Reactivation removed (obsolete)
         private static readonly GUIContent GC_S3_Header = new GUIContent("<color=yellow>Strategy 3: Chunk-based Processing</color>");
         private static readonly GUIContent GC_S5_Header = new GUIContent("<color=yellow>Strategy 5: Update Frequency Optimization</color>");
     private static readonly GUIContent GC_Debug_Header = new GUIContent("<color=yellow>Debug & Visualization</color>");
@@ -183,20 +183,7 @@ namespace WaterSpringMod
                     // Strategy 1 header
                     LabelCached(listingStandard, GC_S1_Header);
                     listingStandard.Gap();
-                    
-                    // Active tile system checkbox
-                    listingStandard.CheckboxLabeled("Use Active Tile System", ref settings.useActiveTileSystem, 
-                        "Enables the active tile optimization system to improve performance. Only actively changing water tiles are processed.");
-                    
-                    // Stability cap (only rule): tile becomes stable when reaching this many no-change attempts
-                    listingStandard.Gap();
-                    LabelDynamicInt(listingStandard, "Stability Cap: ", settings.stabilityCap, " no-change attempts",
-                        tooltip: "A tile is considered stable ONLY when its stability counter reaches this cap.\nStability increases by 1 each time the tile is processed and no diffusion occurs.");
-                    settings.stabilityCap = (int)listingStandard.Slider(settings.stabilityCap, 1, 1000);
-                    listingStandard.Gap(4f);
-                    _tmpContent.text = "Counts only when a tile attempts diffusion and nothing changes. Raise to require more cycles; lower to stabilize sooner."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
-                    _tmpContent.text = "How many ticks a water tile must remain unchanged before it's considered stable and removed from active processing."; _tmpContent.tooltip = null; LabelCached(listingStandard, _tmpContent);
-                    
+
                     // Max processed tiles
                     listingStandard.Gap();
                     LabelDynamicInt(listingStandard, "Max Processed Tiles Per Tick: ", settings.maxProcessedTilesPerTick, null,
@@ -245,53 +232,34 @@ namespace WaterSpringMod
                     listingStandard.CheckboxLabeled("Spring tiles never stabilize", ref settings.springNeverStabilize,
                         "Spring source tiles are never removed from active processing based on stability.");
 
-                    // Reactivation wave controls
-                    listingStandard.Gap(10f);
-                    LabelCached(listingStandard, GC_S1_Reactivation);
-                    LabelDynamicInt(listingStandard, "Radius: ", settings.reactivationRadius, " tiles",
-                        tooltip: "When a cell changes or a wall is removed, wake tiles within this radius.");
-                    settings.reactivationRadius = (int)listingStandard.Slider(settings.reactivationRadius, 1, 32);
-                    LabelDynamicInt(listingStandard, "Immediate Transfers Cap: ", settings.reactivationMaxTiles, " tiles",
-                        tooltip: "Upper bound of tiles allowed to perform 1 immediate transfer on wake.");
-                    settings.reactivationMaxTiles = (int)listingStandard.Slider(settings.reactivationMaxTiles, 0, 512);
-                    listingStandard.CheckboxLabeled("Attempt one immediate transfer on wake", ref settings.reactivationImmediateTransfers,
-                        "Helps restart flow quickly after openings.");
                     break;
                 
                 case 2: // Strategy 3: Chunk-based Processing
                     // Strategy 3 header
                     LabelCached(listingStandard, GC_S3_Header);
                     listingStandard.Gap();
-                    
-                    // Chunk processing checkbox
-                    listingStandard.CheckboxLabeled("Use Chunk-based Processing", ref settings.useChunkBasedProcessing, 
-                        "Organizes water tiles into spatial chunks for more efficient processing. Experimental feature.");
-                    
-                    if (settings.useChunkBasedProcessing)
-                    {
-                        // Chunk size
-                        listingStandard.Gap();
-                        LabelDynamicIntPair(listingStandard, "Chunk Size: ", settings.chunkSize, "x", settings.chunkSize, " tiles",
-                            tooltip: "Tile width/height of spatial chunks used for batching. Smaller = more chunks; larger = fewer, larger chunks.");
-                        settings.chunkSize = (int)listingStandard.Slider(settings.chunkSize, 4, 16);
-                        
-                        // Max processed chunks
-                        listingStandard.Gap();
-                        LabelDynamicInt(listingStandard, "Max Processed Chunks Per Tick: ", settings.maxProcessedChunksPerTick, null,
-                            tooltip: "Upper bound on how many chunks are processed each tick. Lower improves performance but slows diffusion.");
-                        settings.maxProcessedChunksPerTick = (int)listingStandard.Slider(settings.maxProcessedChunksPerTick, 5, 100);
-                        
-                        // Max processed tiles per chunk
-                        listingStandard.Gap();
-                        LabelDynamicInt(listingStandard, "Max Processed Tiles Per Chunk: ", settings.maxProcessedTilesPerChunk, null,
-                            tooltip: "Cap on water tiles processed per chunk each tick. Lower improves performance but slows diffusion.");
-                        settings.maxProcessedTilesPerChunk = (int)listingStandard.Slider(settings.maxProcessedTilesPerChunk, 10, 200);
-                        
-                        // Checkerboard pattern
-                        listingStandard.Gap();
-                        listingStandard.CheckboxLabeled("Use Checkerboard Update Pattern", ref settings.useCheckerboardPattern, 
-                            "Alternate processing of chunks to improve performance. Odd chunks process on odd ticks, even chunks on even ticks.");
-                    }
+
+                    // Chunk size
+                    LabelDynamicIntPair(listingStandard, "Chunk Size: ", settings.chunkSize, "x", settings.chunkSize, " tiles",
+                        tooltip: "Tile width/height of spatial chunks used for batching. Smaller = more chunks; larger = fewer, larger chunks.");
+                    settings.chunkSize = (int)listingStandard.Slider(settings.chunkSize, 4, 16);
+
+                    // Max processed chunks
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Max Processed Chunks Per Tick: ", settings.maxProcessedChunksPerTick, null,
+                        tooltip: "Upper bound on how many dirty chunks are processed each tick. Lower improves performance but slows diffusion.");
+                    settings.maxProcessedChunksPerTick = (int)listingStandard.Slider(settings.maxProcessedChunksPerTick, 5, 100);
+
+                    // Max processed tiles per chunk
+                    listingStandard.Gap();
+                    LabelDynamicInt(listingStandard, "Max Processed Tiles Per Chunk: ", settings.maxProcessedTilesPerChunk, null,
+                        tooltip: "Cap on water tiles processed per chunk each tick. Lower improves performance but slows diffusion.");
+                    settings.maxProcessedTilesPerChunk = (int)listingStandard.Slider(settings.maxProcessedTilesPerChunk, 10, 200);
+
+                    // Checkerboard pattern
+                    listingStandard.Gap();
+                    listingStandard.CheckboxLabeled("Use Checkerboard Update Pattern", ref settings.useCheckerboardPattern,
+                        "Alternate processing of chunks to improve performance. Odd chunks process on odd ticks, even chunks on even ticks.");
                     break;
                 
                 case 3: // Strategy 5: Update Frequency Optimization

@@ -62,7 +62,17 @@ namespace WaterSpringMod.WaterSpring
 
                 // Wake water tiles around the gate
                 var dm = Current.Game?.GetComponent<GameComponent_WaterDiffusion>();
-                dm?.ReactivateInRadius(Map, Position);
+                dm?.MarkChunkDirtyAt(Map, Position);
+                foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                {
+                    IntVec3 adj = Position + dir;
+                    if (adj.InBounds(Map))
+                    {
+                        dm?.MarkChunkDirtyAt(Map, adj);
+                        var w = Map.thingGrid.ThingAt<FlowingWater>(adj);
+                        if (w != null) w.ClearStatic();
+                    }
+                }
             }
 
             // Keep door synced with lever state

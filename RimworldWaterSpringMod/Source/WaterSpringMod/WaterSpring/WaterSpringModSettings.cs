@@ -12,16 +12,12 @@ namespace WaterSpringMod
         public bool debugModeEnabled = false; // Default: disabled
         
     // Performance optimization settings
-        public bool useActiveTileSystem = true; // Default: enabled
-    // Stability rule: a tile is stable ONLY when it reaches the stability cap (no-change attempts)
-    public int stabilityCap = 100; // Default: 100 no-change attempts required to be stable
         public int maxProcessedTilesPerTick = 500; // Default: 500 tiles max per tick
         public bool showPerformanceStats = false; // Default: disabled
         public bool showDetailedDebug = false; // Default: disabled - shows stable water tiles in debug view
         
 
     // Chunk-based processing settings
-        public bool useChunkBasedProcessing = false; // Default: disabled until Strategy 3 is fully implemented
         public int chunkSize = 8; // Default: 8x8 chunk size
         public int maxProcessedChunksPerTick = 20; // Default: process up to 20 chunks per tick
         public int maxProcessedTilesPerChunk = 50; // Default: process up to 50 tiles per chunk
@@ -56,11 +52,6 @@ namespace WaterSpringMod
     public int springBacklogInjectInterval = 30; // Default: drip 1 backlog unit every 30 ticks when capacity exists
     public bool springPrioritizeTiles = true; // Default: process spring tiles every tick
     public bool springNeverStabilize = true; // Default: spring tiles never stabilize
-
-    // Reactivation wave settings
-    public int reactivationRadius = 8; // Default: wake tiles within 8 cells
-    public int reactivationMaxTiles = 128; // Default: process up to 128 tiles immediately
-    public bool reactivationImmediateTransfers = true; // Default: attempt a single immediate transfer on wake
 
     // Vertical portal: no settings required; uses WS_Hole and a fixed cache TTL
 
@@ -102,14 +93,11 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref debugModeEnabled, "debugModeEnabled", false);
             
             // Save/load performance settings
-            Scribe_Values.Look(ref useActiveTileSystem, "useActiveTileSystem", true);
-            Scribe_Values.Look(ref stabilityCap, "stabilityCap", 100);
             Scribe_Values.Look(ref maxProcessedTilesPerTick, "maxProcessedTilesPerTick", 500);
             Scribe_Values.Look(ref showPerformanceStats, "showPerformanceStats", false);
             Scribe_Values.Look(ref showDetailedDebug, "showDetailedDebug", false);
             
             // Save/load chunk-based processing settings
-            Scribe_Values.Look(ref useChunkBasedProcessing, "useChunkBasedProcessing", false);
             Scribe_Values.Look(ref chunkSize, "chunkSize", 8);
             Scribe_Values.Look(ref maxProcessedChunksPerTick, "maxProcessedChunksPerTick", 20);
             Scribe_Values.Look(ref maxProcessedTilesPerChunk, "maxProcessedTilesPerChunk", 50);
@@ -145,10 +133,6 @@ namespace WaterSpringMod
             Scribe_Values.Look(ref springPrioritizeTiles, "springPrioritizeTiles", true);
             Scribe_Values.Look(ref springNeverStabilize, "springNeverStabilize", true);
             
-            // Save/load reactivation settings
-            Scribe_Values.Look(ref reactivationRadius, "reactivationRadius", 8);
-            Scribe_Values.Look(ref reactivationMaxTiles, "reactivationMaxTiles", 128);
-            Scribe_Values.Look(ref reactivationImmediateTransfers, "reactivationImmediateTransfers", true);
             // No per-setting fields for vertical portal bridge
             
             // Save/load multi-level integration settings
@@ -200,9 +184,6 @@ namespace WaterSpringMod
             // Spawn interval: [1, 6000] (~100s)
             waterSpringSpawnInterval = Mathf.Clamp(waterSpringSpawnInterval, 1, 6000);
 
-            // Stability
-            stabilityCap = Mathf.Clamp(stabilityCap, 1, WaterSpringMod.WaterSpring.FlowingWater.MaxStability);
-
             // Local diffusion timing
             localCheckIntervalMin = Mathf.Clamp(localCheckIntervalMin, 1, 600);
             localCheckIntervalMax = Mathf.Clamp(localCheckIntervalMax, localCheckIntervalMin, 1200);
@@ -222,10 +203,6 @@ namespace WaterSpringMod
             // Spring behavior
             springBacklogCap = Mathf.Clamp(springBacklogCap, 0, WaterSpringMod.WaterSpring.FlowingWater.MaxVolume);
             springBacklogInjectInterval = Mathf.Clamp(springBacklogInjectInterval, 1, 600);
-
-            // Reactivation wave
-            reactivationRadius = Mathf.Clamp(reactivationRadius, 1, 64);
-            reactivationMaxTiles = Mathf.Clamp(reactivationMaxTiles, 1, 10000);
 
             // Evaporation
             evaporationIntervalTicks = Mathf.Clamp(evaporationIntervalTicks, 60, 6000);

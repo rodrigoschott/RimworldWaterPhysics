@@ -512,14 +512,21 @@ namespace WaterSpringMod.WaterSpring
                         
                         // Wake water on upper level
                         var w = upperMap.thingGrid.ThingAt<FlowingWater>(pos);
-                        if (w != null && w.IsExplicitlyDeregistered)
+                        if (w != null)
                         {
-                            w.Reactivate();
+                            w.ClearStatic();
                         }
-                        
-                        gameComp?.RegisterActiveTile(upperMap, pos);
-                        gameComp?.ActivateNeighbors(upperMap, pos);
-                        gameComp?.ReactivateInRadius(upperMap, pos);
+
+                        gameComp?.MarkChunkDirtyAt(upperMap, pos);
+                        // Also dirty cardinal neighbors
+                        foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                        {
+                            IntVec3 adj = pos + dir;
+                            if (!adj.InBounds(upperMap)) continue;
+                            gameComp?.MarkChunkDirtyAt(upperMap, adj);
+                            var adjW = upperMap.thingGrid.ThingAt<FlowingWater>(adj);
+                            if (adjW != null) adjW.ClearStatic();
+                        }
                         
                         if (debug)
                         {
@@ -562,15 +569,20 @@ namespace WaterSpringMod.WaterSpring
                 // Only wake if the upper map also has a hole at this position
                 if (!pos.InBounds(upper) || !IsCellPassableForUpper(upper, pos) || !IsHoleAt(upper, pos)) continue;
                 var w = upper.thingGrid.ThingAt<FlowingWater>(pos);
-                if (w != null && w.IsExplicitlyDeregistered)
+                if (w != null)
                 {
-                    w.Reactivate();
+                    w.ClearStatic();
                 }
-                // Ensure scheduled even if currently empty; neighbors will wake too and create water if needed
-                gameComp?.RegisterActiveTile(upper, pos);
-                gameComp?.ActivateNeighbors(upper, pos);
-                // Kick a bounded wake wave so adjacent stable tiles start flowing downward
-                gameComp?.ReactivateInRadius(upper, pos);
+                // Mark chunk dirty + wake cardinal neighbors
+                gameComp?.MarkChunkDirtyAt(upper, pos);
+                foreach (IntVec3 dir in GenAdj.CardinalDirections)
+                {
+                    IntVec3 adj = pos + dir;
+                    if (!adj.InBounds(upper)) continue;
+                    gameComp?.MarkChunkDirtyAt(upper, adj);
+                    var adjW = upper.thingGrid.ThingAt<FlowingWater>(adj);
+                    if (adjW != null) adjW.ClearStatic();
+                }
                 if (debug)
                 {
                     WaterSpringLogger.LogDebug($"[Portal] Vertical reactivation: woke upper #{upper.uniqueID} at {pos} due to change on lower #{map.uniqueID}");

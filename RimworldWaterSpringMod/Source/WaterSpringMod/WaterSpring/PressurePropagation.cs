@@ -291,11 +291,8 @@ namespace WaterSpringMod.WaterSpring
             target.AddVolume(transfer);
             source.Volume -= transfer;
 
-            if (settings.useActiveTileSystem)
-            {
-                dm.RegisterActiveTile(targetMap, targetCell);
-                target.ResetStabilityCounter();
-            }
+            dm.MarkChunkDirtyAt(targetMap, targetCell);
+            target.ClearStatic();
 
             return true;
         }
@@ -333,11 +330,8 @@ namespace WaterSpringMod.WaterSpring
                     WaterSpringLogger.LogDebug($"[Pressure] BFS found empty outlet at {targetCell} map#{targetMap.uniqueID} after {explored} tiles. Delivered {transfer} unit(s).");
                 }
 
-                if (settings.useActiveTileSystem)
-                {
-                    dm.RegisterActiveTile(targetMap, targetCell);
-                    typed.ResetStabilityCounter();
-                }
+                dm.MarkChunkDirtyAt(targetMap, targetCell);
+                typed.ClearStatic();
 
                 return true;
             }
@@ -509,21 +503,18 @@ namespace WaterSpringMod.WaterSpring
 
                 totalDelivered += deliver;
 
-                if (settings.useActiveTileSystem)
-                {
-                    diffusionManager.RegisterActiveTile(c.map, c.cell);
-                    c.water?.ResetStabilityCounter();
-                }
+                diffusionManager.MarkChunkDirtyAt(c.map, c.cell);
+                c.water?.ClearStatic();
             }
 
             if (totalDelivered > 0)
             {
                 source.Volume -= totalDelivered;
 
-                if (settings.useActiveTileSystem && source.Spawned && source.Map != null)
+                if (source.Spawned && source.Map != null)
                 {
-                    diffusionManager.RegisterActiveTile(source.Map, source.Position);
-                    source.ResetStabilityCounter();
+                    diffusionManager.MarkChunkDirtyAt(source.Map, source.Position);
+                    source.ClearStatic();
                 }
 
                 if (debug)
