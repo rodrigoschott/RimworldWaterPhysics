@@ -11,4 +11,16 @@ namespace WaterSpringMod.WaterSpring
     {
         public bool waterPassable = true;
     }
+
+    /// <summary>
+    /// Per-def spring settings. Overrides global WaterSpringModSettings values
+    /// when attached to a spring building's ThingDef.
+    /// </summary>
+    public class SpringSettingsExtension : DefModExtension
+    {
+        public int spawnInterval = 120;
+        public int backlogCap = 7;
+        public int backlogInjectInterval = 30;
+        public bool neverStabilize = true;
+    }
 }

@@ -32,7 +32,7 @@
       <Flammability>0</Flammability>
     </statBases>
     <graphicData>
-      <texPath>Things/Building/WS_Hole</texPath>
+      <texPath>Things/Building/Natural/SteamGeyser</texPath>
       <graphicClass>Graphic_Single</graphicClass>
       <drawSize>(1,1)</drawSize>
     </graphicData>

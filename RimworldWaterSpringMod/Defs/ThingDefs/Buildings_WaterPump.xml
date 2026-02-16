@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_WaterPump</defName>
+    <label>water pump</label>
+    <description>A mechanical pump that moves water from its intake (behind) to its output (front). Can be toggled to pump water vertically upward when MultiFloors is installed. Requires power.</description>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterPump</thingClass>
+    <category>Building</category>
+    <graphicData>
+      <texPath>Things/Building/WS_Pump</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.5</fillPercent>
+    <pathCost>50</pathCost>
+    <rotatable>true</rotatable>
+    <tickerType>Normal</tickerType>
+    <size>(1,1)</size>
+    <statBases>
+      <MaxHitPoints>150</MaxHitPoints>
+      <WorkToBuild>2000</WorkToBuild>
+      <Flammability>0.5</Flammability>
+      <Beauty>-5</Beauty>
+      <Mass>25</Mass>
+    </statBases>
+    <costList>
+      <Steel>50</Steel>
+      <ComponentIndustrial>2</ComponentIndustrial>
+    </costList>
+    <constructEffect>ConstructMetal</constructEffect>
+    <designationCategory>Misc</designationCategory>
+    <building>
+      <isEdifice>true</isEdifice>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+      <ai_chillDestination>false</ai_chillDestination>
+    </building>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>100</basePowerConsumption>
+        <shortCircuitInRain>false</shortCircuitInRain>
+      </li>
+      <li Class="CompProperties_Flickable" />
+      <li Class="CompProperties_Breakdownable" />
+    </comps>
+    <researchPrerequisites>
+      <li>Electricity</li>
+    </researchPrerequisites>
+    <minifiedDef>MinifiedThing</minifiedDef>
+    <thingCategories>
+      <li>BuildingsMisc</li>
+    </thingCategories>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.WaterFlowExtension">
+        <waterPassable>true</waterPassable>
+      </li>
+    </modExtensions>
+  </ThingDef>
+</Defs>

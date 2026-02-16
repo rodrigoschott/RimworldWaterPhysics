@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_Drain</defName>
+    <label>water drain</label>
+    <description>A grated drain that absorbs water flowing over it. Useful for flood control and preventing water buildup.</description>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterDrain</thingClass>
+    <tickerType>Normal</tickerType>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
+    <passability>Standable</passability>
+    <building>
+      <isEdifice>false</isEdifice>
+      <isInert>true</isInert>
+    </building>
+    <costList>
+      <Steel>15</Steel>
+    </costList>
+    <statBases>
+      <WorkToBuild>300</WorkToBuild>
+      <MaxHitPoints>80</MaxHitPoints>
+      <Flammability>0</Flammability>
+    </statBases>
+    <comps>
+      <li Class="CompProperties_AffectedByFacilities">
+        <linkableFacilities>
+          <li>WS_Lever</li>
+        </linkableFacilities>
+      </li>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
+    <placeWorkers>
+      <li>PlaceWorker_ShowFacilitiesConnections</li>
+    </placeWorkers>
+    <drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>
+    <designationCategory>Misc</designationCategory>
+    <graphicData>
+      <texPath>Things/Building/WS_Hole</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <rotatable>false</rotatable>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.WaterFlowExtension">
+        <waterPassable>true</waterPassable>
+      </li>
+    </modExtensions>
+  </ThingDef>
+</Defs>

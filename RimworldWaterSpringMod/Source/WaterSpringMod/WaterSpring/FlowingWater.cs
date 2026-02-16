@@ -172,6 +172,11 @@ namespace WaterSpringMod.WaterSpring
                 dm.MarkChunkDirtyAt(map, Position);
                 isStatic = false;
             }
+
+            // If spawning on a channel, dirty its mesh so it hides its graphic
+            Building_WaterChannel channel = map.thingGrid.ThingAt<Building_WaterChannel>(Position);
+            if (channel != null)
+                map.mapDrawer.MapMeshDirty(Position, MapMeshFlagDefOf.Things);
         }
         
         // Method to detect if a wall or other barrier has been added or removed nearby
@@ -210,6 +215,11 @@ namespace WaterSpringMod.WaterSpring
                 dm.GetSpatialIndex(Map)?.UnregisterWaterTile(Position);
                 dm.MarkChunkDirtyAt(Map, Position);
             }
+
+            // If despawning from a channel, dirty its mesh so it redraws
+            Building_WaterChannel channel = Map?.thingGrid.ThingAt<Building_WaterChannel>(Position);
+            if (channel != null)
+                Map.mapDrawer.MapMeshDirty(Position, MapMeshFlagDefOf.Things);
 
             base.DeSpawn(mode);
         }
@@ -463,6 +473,16 @@ namespace WaterSpringMod.WaterSpring
                                 continue;
                             }
                             // Open floodgate: allow through, skip fillPercent check
+                        }
+                        // Pump: non-operational blocks water; operational allows through
+                        else if (ed is Building_WaterPump pump)
+                        {
+                            if (!pump.IsOperational)
+                            {
+                                if (debug) WaterSpringLogger.LogDebug($"FlowingWater: Cell {adjacentCell} has inactive pump, skipping");
+                                continue;
+                            }
+                            // Operational pump: allow through, skip fillPercent check
                         }
                         else if (ed.def.fillPercent > 0.1f)
                         {

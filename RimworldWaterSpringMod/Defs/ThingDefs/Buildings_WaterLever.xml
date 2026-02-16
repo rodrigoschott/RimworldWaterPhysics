@@ -5,7 +5,7 @@
   <ThingDef ParentName="BuildingBase">
     <defName>WS_Lever</defName>
     <label>water lever</label>
-    <description>A lever that controls linked floodgates. A colonist must pull it to toggle connected gates open or closed. One lever can control up to 4 floodgates within range.</description>
+    <description>A lever that controls linked floodgates and drains. A colonist must pull it to toggle connected buildings. One lever can control up to 4 linked buildings within range.</description>
     <category>Building</category>
     <thingClass>Building</thingClass>
     <building>

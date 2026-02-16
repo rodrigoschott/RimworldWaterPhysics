@@ -159,9 +159,9 @@ namespace WaterSpringMod
                         "When enabled, water channels restrict flow to their axis direction. Disable to let channels act as purely decorative.");
                     listingStandard.Gap();
 
-                    // Spring spawn interval
-                    _tmpContent.text = "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval);
-                    _tmpContent.tooltip = "Interval between spring spawns (ticks). Lower = faster water production; higher = slower.";
+                    // Spring spawn interval (default for springs without per-def extension)
+                    _tmpContent.text = "WaterSpringMod.SpawnIntervalLabel".Translate(settings.waterSpringSpawnInterval) + " (default)";
+                    _tmpContent.tooltip = "Default interval between spring spawns (ticks). Springs with per-def settings (trickle, pressure) override this value.";
                     LabelCached(listingStandard, _tmpContent);
                     settings.waterSpringSpawnInterval = (int)listingStandard.Slider(settings.waterSpringSpawnInterval, 10, 1000);
                     

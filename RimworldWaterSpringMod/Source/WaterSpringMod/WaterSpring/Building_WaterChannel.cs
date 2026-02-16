@@ -9,5 +9,16 @@ namespace WaterSpringMod.WaterSpring
     /// </summary>
     public class Building_WaterChannel : Building
     {
+        public override void Print(SectionLayer layer)
+        {
+            // Hide channel graphic when water is present (water terrain takes over)
+            if (Spawned && Map != null)
+            {
+                FlowingWater water = Map.thingGrid.ThingAt<FlowingWater>(Position);
+                if (water != null && water.Spawned && !water.Destroyed)
+                    return; // Skip rendering — water terrain is visible instead
+            }
+            base.Print(layer);
+        }
     }
 }

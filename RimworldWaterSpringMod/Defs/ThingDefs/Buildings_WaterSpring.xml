@@ -46,5 +46,118 @@
     <thingCategories>
       <li>BuildingsMisc</li>
     </thingCategories>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.SpringSettingsExtension">
+        <spawnInterval>120</spawnInterval>
+        <backlogCap>7</backlogCap>
+      </li>
+    </modExtensions>
+  </ThingDef>
+
+  <!-- Trickle Spring: slow, steady, cheap -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_SpringLight</defName>
+    <label>trickle spring</label>
+    <description>A slow, steady water source. Produces water at a low rate, ideal for controlled irrigation or small channels.</description>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterSpring</thingClass>
+    <category>Building</category>
+    <graphicData>
+      <texPath>Things/Building/WaterSpring</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <pathCost>50</pathCost>
+    <blockWind>true</blockWind>
+    <fillPercent>0.5</fillPercent>
+    <rotatable>false</rotatable>
+    <statBases>
+      <MaxHitPoints>80</MaxHitPoints>
+      <WorkToBuild>800</WorkToBuild>
+      <Flammability>0</Flammability>
+      <Beauty>1</Beauty>
+      <Mass>15</Mass>
+    </statBases>
+    <tickerType>Normal</tickerType>
+    <size>(1,1)</size>
+    <designationCategory>Misc</designationCategory>
+    <costList>
+      <Steel>30</Steel>
+    </costList>
+    <constructEffect>ConstructMetal</constructEffect>
+    <terrainAffordanceNeeded IsNull="True" />
+    <building>
+      <isEdifice>true</isEdifice>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+      <canPlaceOverImpassablePlant>false</canPlaceOverImpassablePlant>
+      <ai_chillDestination>false</ai_chillDestination>
+    </building>
+    <minifiedDef>MinifiedThing</minifiedDef>
+    <thingCategories>
+      <li>BuildingsMisc</li>
+    </thingCategories>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.SpringSettingsExtension">
+        <spawnInterval>300</spawnInterval>
+        <backlogCap>3</backlogCap>
+        <backlogInjectInterval>60</backlogInjectInterval>
+        <neverStabilize>true</neverStabilize>
+      </li>
+    </modExtensions>
+  </ThingDef>
+
+  <!-- Pressure Spring: high-output, expensive -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>WS_SpringHeavy</defName>
+    <label>pressure spring</label>
+    <description>A high-output water source that can flood areas quickly. Use with caution — without proper drainage, this spring will overwhelm its surroundings.</description>
+    <thingClass>WaterSpringMod.WaterSpring.Building_WaterSpring</thingClass>
+    <category>Building</category>
+    <graphicData>
+      <texPath>Things/Building/WaterSpring</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <pathCost>50</pathCost>
+    <blockWind>true</blockWind>
+    <fillPercent>0.5</fillPercent>
+    <rotatable>false</rotatable>
+    <statBases>
+      <MaxHitPoints>150</MaxHitPoints>
+      <WorkToBuild>2500</WorkToBuild>
+      <Flammability>0</Flammability>
+      <Beauty>1</Beauty>
+      <Mass>30</Mass>
+    </statBases>
+    <tickerType>Normal</tickerType>
+    <size>(1,1)</size>
+    <designationCategory>Misc</designationCategory>
+    <costList>
+      <Steel>150</Steel>
+      <ComponentIndustrial>3</ComponentIndustrial>
+    </costList>
+    <constructEffect>ConstructMetal</constructEffect>
+    <terrainAffordanceNeeded IsNull="True" />
+    <building>
+      <isEdifice>true</isEdifice>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+      <canPlaceOverImpassablePlant>false</canPlaceOverImpassablePlant>
+      <ai_chillDestination>false</ai_chillDestination>
+    </building>
+    <minifiedDef>MinifiedThing</minifiedDef>
+    <thingCategories>
+      <li>BuildingsMisc</li>
+    </thingCategories>
+    <modExtensions>
+      <li Class="WaterSpringMod.WaterSpring.SpringSettingsExtension">
+        <spawnInterval>30</spawnInterval>
+        <backlogCap>14</backlogCap>
+        <backlogInjectInterval>10</backlogInjectInterval>
+        <neverStabilize>true</neverStabilize>
+      </li>
+    </modExtensions>
   </ThingDef>
 </Defs>

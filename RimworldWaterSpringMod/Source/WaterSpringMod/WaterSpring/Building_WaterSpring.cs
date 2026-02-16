@@ -12,6 +12,9 @@ namespace WaterSpringMod.WaterSpring
     private int backlog = 0; // units of water produced but not yet injected
     private int ticksUntilBacklogInject = 0;
 
+        private SpringSettingsExtension ExtSettings =>
+            def.GetModExtension<SpringSettingsExtension>();
+
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             base.SpawnSetup(map, respawningAfterLoad);
@@ -93,9 +96,9 @@ namespace WaterSpringMod.WaterSpring
                 }
                 SpawnFlowingWater();
                 
-                // Get settings from the mod
+                // Get settings from the mod (per-def extension overrides global)
                 WaterSpringModSettings settings = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
-                int newInterval = settings != null ? settings.waterSpringSpawnInterval : 200;
+                int newInterval = ExtSettings?.spawnInterval ?? (settings != null ? settings.waterSpringSpawnInterval : 200);
                 ticksUntilNextWaterSpawn = newInterval;
                 if (WaterSpringLogger.DebugEnabled)
                 {
@@ -111,7 +114,8 @@ namespace WaterSpringMod.WaterSpring
                 if (ticksUntilBacklogInject <= 0)
                 {
                     TryInjectBacklog();
-                    ticksUntilBacklogInject = Math.Max(1, s2.springBacklogInjectInterval);
+                    int injectInterval = ExtSettings?.backlogInjectInterval ?? s2.springBacklogInjectInterval;
+                    ticksUntilBacklogInject = Math.Max(1, injectInterval);
                 }
             }
         }
@@ -190,12 +194,13 @@ namespace WaterSpringMod.WaterSpring
                     if (!delivered && s.springUseBacklog)
                     {
                         // Pressure couldn't deliver — fall back to backlog
-                        if (backlog < Math.Max(0, s.springBacklogCap))
+                        int cap = ExtSettings?.backlogCap ?? s.springBacklogCap;
+                        if (backlog < Math.Max(0, cap))
                         {
                             backlog++;
                             if (WaterSpringLogger.DebugEnabled)
                             {
-                                WaterSpringLogger.LogDebug("SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now " + backlog + "/" + s.springBacklogCap);
+                                WaterSpringLogger.LogDebug("SpawnFlowingWater: Spring tile full, added 1 to backlog. Backlog now " + backlog + "/" + cap);
                             }
                         }
                         else
@@ -253,7 +258,8 @@ namespace WaterSpringMod.WaterSpring
                         var s = LoadedModManager.GetMod<WaterSpringModMain>()?.GetSettings<WaterSpringModSettings>();
                         if (s != null)
                         {
-                            typedWater.MarkAsSpringSource(s.springNeverStabilize);
+                            bool neverStab = ExtSettings?.neverStabilize ?? s.springNeverStabilize;
+                            typedWater.MarkAsSpringSource(neverStab);
                         }
                         
                         try
